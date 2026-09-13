@@ -78,7 +78,7 @@ No hosted deployment or physical-phone reliability claim has been made.
 
 ## Deployed QA, September 9, 2026
 
-Three independent GPT-5.6 Sol agents checked `https://kueki.carlassmann.com`.
+Three independent GPT-5.6 Sol agents checked `https://babyphone.carlassmann.com`.
 
 Production API checks passed for room creation, two invitation joins, cross-room isolation, invalid tokens, three authenticated WebSockets, shared sensitivity broadcasts, and a disconnected baby's offline event and stopped-monitoring state. Device removal closed its socket with code 4001, revoked HTTP access, and rotated the invitation. Reset rejected the previous invitation and allowed a fresh join. The backend probe removed its devices and temporary script. An initial offline-event timeout came from the probe also letting parent heartbeats expire; the corrected probe passed.
 
