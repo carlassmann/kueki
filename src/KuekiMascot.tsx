@@ -16,11 +16,23 @@ export function KuekiMascot({
   const t = useIntl();
   const id = useId();
   const [interacting, setInteracting] = useState(false);
+  const [chirping, setChirping] = useState(false);
   const [listening, setListening] = useState(state === 'sound');
   const interactionTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const chirpTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const chirpFrame = useRef<number>(undefined);
+  const button = useRef<HTMLButtonElement>(null);
+  const gaze = useRef<SVGGElement>(null);
   const awake = state === 'sound' || listening || interacting;
 
-  useEffect(() => () => clearTimeout(interactionTimer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(interactionTimer.current);
+      clearTimeout(chirpTimer.current);
+      cancelAnimationFrame(chirpFrame.current ?? 0);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (state !== 'quiet') {
@@ -31,21 +43,70 @@ export function KuekiMascot({
     return () => clearTimeout(settleTimer);
   }, [state]);
 
+  useEffect(() => {
+    if (!awake) {
+      gaze.current?.style.removeProperty('transform');
+      return;
+    }
+
+    function followPointer(event: PointerEvent) {
+      if (
+        event.pointerType !== 'mouse' ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ) {
+        return;
+      }
+
+      const bounds = button.current?.getBoundingClientRect();
+      if (!bounds) return;
+
+      const horizontal = (event.clientX - bounds.left) / bounds.width - 0.5;
+      const vertical = (event.clientY - bounds.top) / bounds.height - 0.5;
+      const x = Math.max(-1, Math.min(1, horizontal * 2)) * 3.5;
+      const y = Math.max(-1, Math.min(1, vertical * 2)) * 2.5;
+      gaze.current?.style.setProperty('transform', `translate(${x}px, ${y}px)`);
+    }
+
+    function resetGaze() {
+      gaze.current?.style.removeProperty('transform');
+    }
+
+    window.addEventListener('pointermove', followPointer);
+    window.addEventListener('blur', resetGaze);
+    return () => {
+      window.removeEventListener('pointermove', followPointer);
+      window.removeEventListener('blur', resetGaze);
+    };
+  }, [awake]);
+
   function wake() {
     clearTimeout(interactionTimer.current);
     setInteracting(true);
     interactionTimer.current = setTimeout(() => setInteracting(false), 3200);
   }
 
+  function chirp() {
+    wake();
+    clearTimeout(chirpTimer.current);
+    cancelAnimationFrame(chirpFrame.current ?? 0);
+    setChirping(false);
+    chirpFrame.current = requestAnimationFrame(() => {
+      setChirping(true);
+      chirpTimer.current = setTimeout(() => setChirping(false), 720);
+    });
+  }
+
   return (
     <button
+      ref={button}
       type="button"
       className={`monitor-mascot ${className}`}
       data-testid="kueki-mascot"
       data-state={state}
       data-pose={awake ? 'awake' : 'sleeping'}
+      data-reaction={chirping ? 'chirp' : undefined}
       aria-label={t('mascot.stir')}
-      onClick={wake}
+      onClick={chirp}
       onPointerEnter={(event) => {
         if (
           event.pointerType === 'mouse' &&
@@ -141,30 +202,34 @@ export function KuekiMascot({
               </g>
               <g className="kueki-eyes-open">
                 <g className="kueki-blink">
-                  <ellipse cx="116" cy="132" rx="6.5" ry="10" fill="#465b73" />
-                  <ellipse cx="166" cy="131" rx="8" ry="12" fill="#465b73" />
-                  <g className="kueki-eye-glints" fill="#fffdf2">
-                    <ellipse cx="118" cy="128" rx="2.1" ry="2.8" />
-                    <ellipse cx="169" cy="127" rx="2.7" ry="3.3" />
-                    <circle cx="163" cy="135" r="1.4" opacity="0.65" />
+                  <g className="kueki-gaze" ref={gaze}>
+                    <ellipse cx="116" cy="132" rx="6.5" ry="10" fill="#465b73" />
+                    <ellipse cx="166" cy="131" rx="8" ry="12" fill="#465b73" />
+                    <g className="kueki-eye-glints" fill="#fffdf2">
+                      <ellipse cx="118" cy="128" rx="2.1" ry="2.8" />
+                      <ellipse cx="169" cy="127" rx="2.7" ry="3.3" />
+                      <circle cx="163" cy="135" r="1.4" opacity="0.65" />
+                    </g>
                   </g>
                 </g>
               </g>
-              <g className="kueki-beak" transform="translate(132 151)">
-                <path d="M-10 0 Q1 -8 13 -2 Q14 3 2 10 Q-5 9 -10 0Z" fill="#e9a132" />
-                <path
-                  className="kueki-beak-lower"
-                  d="M-8 2 Q1 7 12 0 Q7 15 1 14 Q-5 12 -8 2Z"
-                  fill="#d98a2b"
-                />
-                <path d="M-10 0 Q1 -9 13 -2 Q10 4 2 6 Q-4 5 -10 0Z" fill="#ffbf50" />
-                <path
-                  d="M-5 -1 Q1 -4 6 -3"
-                  fill="none"
-                  stroke="#ffdc84"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
+              <g className="kueki-beak-reaction">
+                <g className="kueki-beak" transform="translate(132 151)">
+                  <path d="M-10 0 Q1 -8 13 -2 Q14 3 2 10 Q-5 9 -10 0Z" fill="#e9a132" />
+                  <path
+                    className="kueki-beak-lower"
+                    d="M-8 2 Q1 7 12 0 Q7 15 1 14 Q-5 12 -8 2Z"
+                    fill="#d98a2b"
+                  />
+                  <path d="M-10 0 Q1 -9 13 -2 Q10 4 2 6 Q-4 5 -10 0Z" fill="#ffbf50" />
+                  <path
+                    d="M-5 -1 Q1 -4 6 -3"
+                    fill="none"
+                    stroke="#ffdc84"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </g>
               </g>
             </g>
           </g>
