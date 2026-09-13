@@ -3,10 +3,10 @@ import { messages, translate } from '@ccssmnn/intl';
 export { baseRoomMessages, deRoomMessages };
 
 const baseRoomMessages = messages({
-  'mic.https': 'Microphone needs HTTPS or localhost. Open Pip using a secure address.',
+  'mic.https': 'Microphone needs HTTPS or localhost. Open Kueki using a secure address.',
   'mic.stopped': 'Microphone stopped. Restart monitoring.',
-  'mic.interrupted': 'Microphone interrupted. Keep Pip open, then restart monitoring.',
-  'mic.suspended': 'Audio was suspended. Keep Pip open and restart monitoring.',
+  'mic.interrupted': 'Microphone interrupted. Keep Kueki open, then restart monitoring.',
+  'mic.suspended': 'Audio was suspended. Keep Kueki open and restart monitoring.',
 
   'audio.connecting': 'Connecting audio',
   'audio.live': 'Listening live',
@@ -22,13 +22,15 @@ const baseRoomMessages = messages({
   'status.inactive': 'Room inactive',
   'status.openElsewhere': 'Open in another tab',
 
-  'mascot.stir': 'Make Pip stir',
-  'mascot.awake': 'Pip awake and looking around',
+  'mascot.stir': 'Make Kueki stir',
+  'mascot.awake': 'Kueki awake and looking around',
 
   'room.inviteDevice': 'Invite a device',
   'room.screenAwake': 'Screen staying awake',
   'room.screenWakeUnavailable':
     'Screen wake lock unavailable. Keep this screen awake manually while listening.',
+  'room.screenWakeTap': 'Tap anywhere to keep the screen awake while listening.',
+  'room.screenWakeAction': 'Keep screen awake',
   'room.deviceRemoved': 'Device removed. Previous invitation links no longer work.',
   'room.invitationReset': 'Invitation reset. Previous links no longer work.',
   'room.micBlocked': 'Microphone access is blocked. Allow it in browser settings, then try again.',
@@ -36,9 +38,9 @@ const baseRoomMessages = messages({
   'notice.accessRemoved':
     'Your access to this room was removed. Leave this room and ask for a new invitation.',
   'notice.openElsewhere':
-    'This device is open in another tab. Close this tab or reload to use Pip here.',
+    'This device is open in another tab. Close this tab or reload to use Kueki here.',
   'notice.connectionUnavailable':
-    'Connection unavailable. Monitoring alerts cannot reach you. Check your baby and your connection; Pip is reconnecting.',
+    'Connection unavailable. Monitoring alerts cannot reach you. Check your baby and your connection; Kueki is reconnecting.',
   'notice.dismiss': 'Dismiss notification',
 
   'event.noise.title': 'Noise detected',
@@ -59,7 +61,7 @@ const baseRoomMessages = messages({
   'monitor.levelLittle': 'A little sound',
   'monitor.levelQuiet': 'Quiet',
   'monitor.levelOff': 'Microphone off',
-  'monitor.mascotAlt': 'Pip sleeping',
+  'monitor.mascotAlt': 'Kueki sleeping',
   'monitor.pause': 'Pause monitoring',
   'monitor.start': 'Start monitoring',
   'monitor.opening': 'Opening microphone…',
@@ -76,7 +78,7 @@ const baseRoomMessages = messages({
   'monitor.dimTitle': 'Reduce screen brightness',
   'monitor.restoreTitle': 'Restore screen brightness',
 
-  'parent.emptyAlt': 'Pip waiting for a baby device',
+  'parent.emptyAlt': 'Kueki waiting for a baby device',
   'parent.emptyTitle': 'Add your baby device',
   'parent.emptyBody':
     'Add a device to stay with your baby.{#br}{/br}Open the invitation on the phone that stays in the nursery.',
@@ -93,13 +95,13 @@ const baseRoomMessages = messages({
   'parent.listen': 'Listen',
   'parent.resumeAudio': 'Resume audio',
 
-  'nest.alt': 'Pip watching over the nest',
+  'nest.alt': 'Kueki watching over the nest',
   'nest.titleSound': 'A little sound',
   'nest.titleQuiet': 'All quiet',
   'nest.titlePaused': 'Nobody listening',
   'nest.soundDetail': '{$name} is picking up some noise.',
-  'nest.quietDetail': 'Pip is keeping watch over {$name}.',
-  'nest.pausedDetail': 'Start monitoring on the baby device so Pip can listen in.',
+  'nest.quietDetail': 'Kueki is keeping watch over {$name}.',
+  'nest.pausedDetail': 'Start monitoring on the baby device so Kueki can listen in.',
   'nest.fallbackBaby': 'A baby device',
   'nest.theNest': 'the nest',
 
@@ -138,12 +140,12 @@ const baseRoomMessages = messages({
   'settings.removeLabel': 'Remove {$name}',
   'settings.deviceTypeBaby': 'Baby device',
   'settings.deviceTypeParent': 'Parent device',
-  'settings.babyKeepPlugged': 'Keep this device plugged in, with Pip open in the foreground.',
+  'settings.babyKeepPlugged': 'Keep this device plugged in, with Kueki open in the foreground.',
   'settings.babyCheckAnalyzed': 'Volume is analyzed here',
   'settings.babyCheckNoSave': 'No audio is saved',
   'settings.babyCheckListen': 'Parents can listen anytime',
   'settings.notificationsBody':
-    'Get a notification for noise or a disconnected baby device, even when Pip is in the background.',
+    'Get a notification for noise or a disconnected baby device, even when Kueki is in the background.',
   'settings.notificationsEnable': 'Enable notifications',
   'settings.notificationsEnabled': 'Notifications enabled',
   'settings.notificationsTest': 'Test notification',
@@ -154,10 +156,10 @@ const baseRoomMessages = messages({
 });
 
 const deRoomMessages = translate(baseRoomMessages, {
-  'mic.https': 'Das Mikrofon benötigt HTTPS oder localhost. Öffne Pip über eine sichere Adresse.',
+  'mic.https': 'Das Mikrofon benötigt HTTPS oder localhost. Öffne Kueki über eine sichere Adresse.',
   'mic.stopped': 'Mikrofon gestoppt. Starte die Überwachung neu.',
-  'mic.interrupted': 'Mikrofon unterbrochen. Lass Pip geöffnet und starte die Überwachung neu.',
-  'mic.suspended': 'Audio wurde ausgesetzt. Lass Pip geöffnet und starte die Überwachung neu.',
+  'mic.interrupted': 'Mikrofon unterbrochen. Lass Kueki geöffnet und starte die Überwachung neu.',
+  'mic.suspended': 'Audio wurde ausgesetzt. Lass Kueki geöffnet und starte die Überwachung neu.',
 
   'audio.connecting': 'Audio wird verbunden',
   'audio.live': 'Live zuhören',
@@ -174,13 +176,15 @@ const deRoomMessages = translate(baseRoomMessages, {
   'status.inactive': 'Raum inaktiv',
   'status.openElsewhere': 'In einem anderen Tab geöffnet',
 
-  'mascot.stir': 'Pip wecken',
-  'mascot.awake': 'Pip ist wach und schaut sich um',
+  'mascot.stir': 'Kueki wecken',
+  'mascot.awake': 'Kueki ist wach und schaut sich um',
 
   'room.inviteDevice': 'Gerät einladen',
   'room.screenAwake': 'Bildschirm bleibt wach',
   'room.screenWakeUnavailable':
     'Bildschirm-Wachhalten nicht verfügbar. Halte diesen Bildschirm beim Zuhören manuell wach.',
+  'room.screenWakeTap': 'Tippe irgendwohin, um den Bildschirm beim Zuhören wach zu halten.',
+  'room.screenWakeAction': 'Bildschirm wach halten',
   'room.deviceRemoved': 'Gerät entfernt. Frühere Einladungslinks funktionieren nicht mehr.',
   'room.invitationReset': 'Einladung zurückgesetzt. Frühere Links funktionieren nicht mehr.',
   'room.micBlocked':
@@ -189,9 +193,9 @@ const deRoomMessages = translate(baseRoomMessages, {
   'notice.accessRemoved':
     'Dein Zugriff auf diesen Raum wurde entfernt. Verlass den Raum und bitte um eine neue Einladung.',
   'notice.openElsewhere':
-    'Dieses Gerät ist in einem anderen Tab geöffnet. Schließe diesen Tab oder lade neu, um Pip hier zu verwenden.',
+    'Dieses Gerät ist in einem anderen Tab geöffnet. Schließe diesen Tab oder lade neu, um Kueki hier zu verwenden.',
   'notice.connectionUnavailable':
-    'Verbindung nicht verfügbar. Hinweise können dich nicht erreichen. Prüfe dein Baby und deine Verbindung; Pip verbindet sich erneut.',
+    'Verbindung nicht verfügbar. Hinweise können dich nicht erreichen. Prüfe dein Baby und deine Verbindung; Kueki verbindet sich erneut.',
   'notice.dismiss': 'Hinweis schließen',
 
   'event.noise.title': 'Geräusch erkannt',
@@ -212,7 +216,7 @@ const deRoomMessages = translate(baseRoomMessages, {
   'monitor.levelLittle': 'Ein leises Geräusch',
   'monitor.levelQuiet': 'Still',
   'monitor.levelOff': 'Mikrofon aus',
-  'monitor.mascotAlt': 'Pip schläft',
+  'monitor.mascotAlt': 'Kueki schläft',
   'monitor.pause': 'Überwachung pausieren',
   'monitor.start': 'Überwachung starten',
   'monitor.opening': 'Mikrofon wird geöffnet…',
@@ -230,7 +234,7 @@ const deRoomMessages = translate(baseRoomMessages, {
   'monitor.dimTitle': 'Bildschirmhelligkeit verringern',
   'monitor.restoreTitle': 'Bildschirmhelligkeit zurücksetzen',
 
-  'parent.emptyAlt': 'Pip wartet auf ein Babygerät',
+  'parent.emptyAlt': 'Kueki wartet auf ein Babygerät',
   'parent.emptyTitle': 'Füge dein Babygerät hinzu',
   'parent.emptyBody':
     'Füge ein Gerät hinzu, das bei deinem Baby bleibt.{#br}{/br}Öffne die Einladung auf dem Handy, das im Kinderzimmer bleibt.',
@@ -247,13 +251,13 @@ const deRoomMessages = translate(baseRoomMessages, {
   'parent.listen': 'Zuhören',
   'parent.resumeAudio': 'Audio fortsetzen',
 
-  'nest.alt': 'Pip wacht über das Nest',
+  'nest.alt': 'Kueki wacht über das Nest',
   'nest.titleSound': 'Ein leises Geräusch',
   'nest.titleQuiet': 'Alles still',
   'nest.titlePaused': 'Niemand hört zu',
   'nest.soundDetail': '{$name} nimmt etwas Lärm auf.',
-  'nest.quietDetail': 'Pip wacht über {$name}.',
-  'nest.pausedDetail': 'Starte die Überwachung auf dem Babygerät, damit Pip zuhören kann.',
+  'nest.quietDetail': 'Kueki wacht über {$name}.',
+  'nest.pausedDetail': 'Starte die Überwachung auf dem Babygerät, damit Kueki zuhören kann.',
   'nest.fallbackBaby': 'Ein Babygerät',
   'nest.theNest': 'das Nest',
 
@@ -294,12 +298,12 @@ const deRoomMessages = translate(baseRoomMessages, {
   'settings.removeLabel': '{$name} entfernen',
   'settings.deviceTypeBaby': 'Babygerät',
   'settings.deviceTypeParent': 'Elterngerät',
-  'settings.babyKeepPlugged': 'Lass dieses Gerät angeschlossen und Pip im Vordergrund geöffnet.',
+  'settings.babyKeepPlugged': 'Lass dieses Gerät angeschlossen und Kueki im Vordergrund geöffnet.',
   'settings.babyCheckAnalyzed': 'Lautstärke wird hier analysiert',
   'settings.babyCheckNoSave': 'Es wird kein Audio gespeichert',
   'settings.babyCheckListen': 'Eltern können jederzeit zuhören',
   'settings.notificationsBody':
-    'Erhalte eine Benachrichtigung bei Geräuschen oder einem getrennten Babygerät, auch wenn Pip im Hintergrund ist.',
+    'Erhalte eine Benachrichtigung bei Geräuschen oder einem getrennten Babygerät, auch wenn Kueki im Hintergrund ist.',
   'settings.notificationsEnable': 'Benachrichtigungen aktivieren',
   'settings.notificationsEnabled': 'Benachrichtigungen aktiviert',
   'settings.notificationsTest': 'Testbenachrichtigung',

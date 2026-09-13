@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function useScreenWake(enabled: boolean) {
   const [awake, setAwake] = useState(false);
+  const [supported] = useState(() => 'wakeLock' in navigator);
+  const [interacted, setInteracted] = useState(false);
+  const acquireRef = useRef(() => {});
   useEffect(() => {
     if (!enabled) return;
     let disposed = false;
@@ -36,22 +39,35 @@ export function useScreenWake(enabled: boolean) {
         pending = false;
       }
     };
+    const interact = () => {
+      setInteracted(true);
+      if (document.visibilityState === 'visible') void acquire();
+    };
     const visible = () => {
       if (document.visibilityState === 'visible') void acquire();
     };
+    const key = () => {
+      setInteracted(true);
+    };
     document.addEventListener('visibilitychange', visible);
-    document.addEventListener('pointerdown', visible);
+    document.addEventListener('pointerdown', interact);
+    document.addEventListener('keydown', key);
+    document.addEventListener('touchstart', interact);
     window.addEventListener('focus', visible);
+    acquireRef.current = interact;
     void acquire();
     return () => {
       disposed = true;
       clearTimeout(retry);
       document.removeEventListener('visibilitychange', visible);
-      document.removeEventListener('pointerdown', visible);
+      document.removeEventListener('pointerdown', interact);
+      document.removeEventListener('keydown', key);
+      document.removeEventListener('touchstart', interact);
       window.removeEventListener('focus', visible);
       void lock?.release();
       setAwake(false);
     };
   }, [enabled]);
-  return awake;
+  const activate = useCallback(() => acquireRef.current(), []);
+  return { awake, supported, needsInteraction: supported && !awake && !interacted, activate };
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Outlet } from '@tanstack/react-router';
+import { toast } from 'sonner';
 import { RoomConnection, request, type ConnectionStatus } from '../../connection';
 import { AudioCalls, type AudioStatus } from './lib/audio-calls';
 import { BabyAudio } from './lib/baby-audio';
@@ -56,7 +57,7 @@ export function Room({
   const [pushTest, setPushTest] = useState('');
   const [dismissedEventsThrough, setDismissedEventsThrough] = useState(0);
   const [sensitivity, setSensitivity] = useState(2);
-  const [dim, setDim] = useState(() => localStorage.getItem('pip-dim') === 'true');
+  const [dim, setDim] = useState(() => localStorage.getItem('kueki-dim') === 'true');
   useEffect(() => {
     pwa.setUpdateBlocked(active || listeningTo);
     return () => pwa.setUpdateBlocked(false);
@@ -86,10 +87,29 @@ export function Room({
       setBusy(false);
     }
   }
-  const parentAwake = useScreenWake(!isBaby);
+  const wake = useScreenWake(!isBaby);
+  const parentAwake = !isBaby && wake.awake;
+  const wakeWaiting = !isBaby && connected && !wake.awake && wake.needsInteraction;
+  const wantedAudioRef = useRef<Set<string>>(new Set());
+  const audioStatusesRef = useRef(audioStatuses);
+  audioStatusesRef.current = audioStatuses;
+  useEffect(() => {
+    if (!wakeWaiting) {
+      toast.dismiss('kueki-wake');
+      return;
+    }
+    toast(t('room.screenWakeTap'), {
+      id: 'kueki-wake',
+      duration: Infinity,
+      action: { label: t('room.screenWakeAction'), onClick: () => wake.activate() },
+    });
+    return () => {
+      toast.dismiss('kueki-wake');
+    };
+  }, [wakeWaiting, t, wake.activate]);
   useEffect(() => {
     document.documentElement.dataset.dim = String(dim);
-    localStorage.setItem('pip-dim', String(dim));
+    localStorage.setItem('kueki-dim', String(dim));
     return () => {
       delete document.documentElement.dataset.dim;
     };
@@ -142,6 +162,9 @@ export function Room({
       () => baby.stream,
       audioRef.current!,
       (status, target) => {
+        if (target && (status === 'stopped' || status === '')) {
+          wantedAudioRef.current.delete(target);
+        }
         setAudioStatuses((current) => (target ? { ...current, [target]: status } : {}));
       },
       session,
@@ -314,15 +337,56 @@ export function Room({
   }
 
   function listenTo(deviceId: string) {
+    wantedAudioRef.current.add(deviceId);
     void callsRef.current?.listen(deviceId).catch((error) => {
       callsRef.current?.stop(deviceId);
+      wantedAudioRef.current.delete(deviceId);
       setError(errorMessage(error));
     });
+  }
+
+  function stopListeningTo(deviceId: string) {
+    wantedAudioRef.current.delete(deviceId);
+    callsRef.current?.stop(deviceId);
   }
 
   function resumeAudio(deviceId: string) {
     void callsRef.current?.resume(deviceId).catch((error) => setError(errorMessage(error)));
   }
+  useEffect(() => {
+    if (isBaby || !connected) return;
+    for (const deviceId of wantedAudioRef.current) {
+      const device = devices.find((candidate) => candidate.id === deviceId);
+      if (!device || !device.online || !device.monitoring) continue;
+      const status = audioStatuses[deviceId];
+      if (status === 'connecting' || status === 'live') continue;
+      if (status === 'paused') {
+        void callsRef.current?.resume(deviceId).catch(() => {
+          void callsRef.current?.listen(deviceId).catch((error) => setError(errorMessage(error)));
+        });
+        continue;
+      }
+      void callsRef.current?.listen(deviceId).catch((error) => setError(errorMessage(error)));
+    }
+  }, [connected, devices, audioStatuses, isBaby]);
+  useEffect(() => {
+    if (isBaby) return;
+    const recover = () => {
+      if (document.visibilityState !== 'visible') return;
+      for (const deviceId of wantedAudioRef.current) {
+        const status = audioStatusesRef.current[deviceId];
+        if (status === 'paused') void callsRef.current?.resume(deviceId).catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', recover);
+    window.addEventListener('focus', recover);
+    window.addEventListener('pageshow', recover);
+    return () => {
+      document.removeEventListener('visibilitychange', recover);
+      window.removeEventListener('focus', recover);
+      window.removeEventListener('pageshow', recover);
+    };
+  }, [isBaby]);
   const babies = devices.filter((device) => device.role === 'baby');
   const mutedBabies = babies
     .filter((device) => device.mutedBy.includes(session.deviceId))
@@ -348,11 +412,16 @@ export function Room({
             connected={connected}
             connection={connection}
             deviceName={session.name}
-            parentAwake={!isBaby && parentAwake}
+            parentAwake={parentAwake}
           />
           <div className="room-alerts">
-            {!isBaby && connected && !parentAwake && (
-              <p className="notice" data-testid="wake-lock-notice">
+            {wakeWaiting && (
+              <p className="notice" data-testid="wake-lock-notice" data-state="tap">
+                {t('room.screenWakeTap')}
+              </p>
+            )}
+            {!isBaby && connected && !parentAwake && !wakeWaiting && (
+              <p className="notice" data-testid="wake-lock-notice" data-state="unavailable">
                 {t('room.screenWakeUnavailable')}
               </p>
             )}
@@ -394,7 +463,7 @@ export function Room({
               openSettings: () => setModal('settings'),
               removeDevice: (deviceId) => void manageAccess(deviceId),
               resumeAudio,
-              stopListening: (deviceId) => callsRef.current?.stop(deviceId),
+              stopListening: stopListeningTo,
               testNotification,
               toggleDim: () => setDim(!dim),
               toggleMute,

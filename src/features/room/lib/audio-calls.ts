@@ -95,6 +95,7 @@ export class AudioCalls {
       ({ audio, target: peer }) => peer === target && audio,
     );
     if (!call?.audio) return;
+    call.audio.muted = false;
     await call.audio.play();
     if (this.calls.get(call.callId) === call) this.onStatus('live', target);
   }
@@ -140,6 +141,9 @@ export class AudioCalls {
   private createAudioElement(target: string) {
     const audio = document.createElement('audio');
     audio.autoplay = true;
+    audio.preload = 'auto';
+    audio.muted = false;
+    audio.volume = 1;
     audio.setAttribute('playsinline', '');
     audio.dataset.deviceId = target;
     this.audioContainer.append(audio);
@@ -180,6 +184,13 @@ export class AudioCalls {
     peer.ontrack = ({ streams, track }) => {
       if (!call.audio) return;
       call.audio.srcObject = streams[0] ?? new MediaStream([track]);
+      track.onended = () => {
+        if (this.calls.has(callId)) this.onStatus('disconnected', target);
+      };
+      track.onmute = () => {
+        if (this.calls.has(callId) && !call.audio?.paused) this.onStatus('paused', target);
+      };
+      call.audio.muted = false;
       void call.audio
         .play()
         .then(() => {
