@@ -9,10 +9,13 @@ import {
 } from '../../../icons';
 import { request } from '../../../connection';
 import { InvitationQr } from '../../../InvitationQr';
-import { Modal } from '../../../Modal';
+import { Dialog } from '../../../components/ui/dialog';
 import type { PublicDevice, Session } from '../../../protocol';
 import { useIntl } from '../../../intl/setup';
 import { RenameField } from './room-components';
+import { Button } from '../../../components/ui/button';
+import './room-modals.css';
+import { Caption, codeLook } from '../../../components/ui/text';
 
 export function InvitationModal({
   accessNotice,
@@ -37,13 +40,13 @@ export function InvitationModal({
 }) {
   const t = useIntl();
   return (
-    <Modal title={t('roomInvite.title')} testId="invite-dialog" close={onClose}>
+    <Dialog title={t('roomInvite.title')} testId="invite-dialog" close={onClose}>
       <p>{t('roomInvite.body')}</p>
       <InvitationQr key={invitation} code={invitation} />
       <label>
         {t('roomInvite.codeLabel')}
         <input
-          className="invitation-code"
+          {...codeLook}
           data-testid="invite-code"
           readOnly
           value={invitation}
@@ -51,43 +54,39 @@ export function InvitationModal({
         />
       </label>
       <div className="invite-actions">
-        <button
-          type="button"
-          className="primary full"
+        <Button
+          variant="primary"
+          full
           data-testid="copy-invite-link"
           onClick={() => onCopy(`${location.origin}/app/join#join=${invitation}`, 'link')}
         >
           {copied === 'link' ? <CheckIcon size={18} weight="bold" /> : <InviteLinkIcon size={18} />}{' '}
           {copied === 'link' ? t('roomInvite.linkCopied') : t('roomInvite.copyLink')}
-        </button>
-        <button
-          type="button"
-          className="secondary full"
+        </Button>
+        <Button
+          variant="secondary"
+          full
           data-testid="copy-invite-code"
           onClick={() => onCopy(invitation, 'code')}
         >
           <CopyIcon size={17} />
           {copied === 'code' ? t('roomInvite.codeCopied') : t('roomInvite.copyCode')}
-        </button>
+        </Button>
       </div>
-      <p className="caption">{t('roomInvite.shareHint')}</p>
+      <Caption>{t('roomInvite.shareHint')}</Caption>
       {!isBaby && (
-        <button
-          type="button"
-          className="secondary full"
+        <Button
+          variant="secondary"
+          full
           data-testid="reset-invitation"
           disabled={busy || !connected}
           onClick={onReset}
         >
           {t('roomInvite.reset')}
-        </button>
+        </Button>
       )}
-      {accessNotice && (
-        <p role="status" className="caption">
-          {accessNotice}
-        </p>
-      )}
-    </Modal>
+      {accessNotice && <Caption role="status">{accessNotice}</Caption>}
+    </Dialog>
   );
 }
 
@@ -108,7 +107,7 @@ export function DeviceSettingsModal({
   const isBaby = session.role === 'baby';
 
   return (
-    <Modal title={t('deviceSettings.title')} testId="device-settings-dialog" close={onClose}>
+    <Dialog title={t('deviceSettings.title')} testId="device-settings-dialog" close={onClose}>
       <div className="setting-detail">
         <DeviceIcon size={24} />
         <div>
@@ -122,29 +121,29 @@ export function DeviceSettingsModal({
         value={session.name}
         onSave={(name) => request('rename-device', { ...session, name })}
       />
-      <button
-        type="button"
-        className="secondary full"
+      <Button
+        variant="secondary"
+        full
         data-testid="switch-role"
         disabled={busy}
         onClick={onChangeRole}
       >
         {isBaby ? t('deviceSettings.switchToParent') : t('deviceSettings.switchToBaby')}
         <DisclosureIcon size={17} />
-      </button>
-      <p className="caption">{t('deviceSettings.switchHint')}</p>
+      </Button>
+      <Caption>{t('deviceSettings.switchHint')}</Caption>
       <hr />
-      <button
-        type="button"
-        className="quiet danger"
+      <Button
+        variant="quiet"
+        tone="danger"
         data-testid="leave-room"
         disabled={busy}
         onClick={onLeave}
       >
         {t('deviceSettings.leave')} <ForwardIcon size={16} />
-      </button>
-      <p className="caption">{t('deviceSettings.leaveHint')}</p>
-    </Modal>
+      </Button>
+      <Caption>{t('deviceSettings.leaveHint')}</Caption>
+    </Dialog>
   );
 }
 
@@ -161,24 +160,25 @@ export function RemoveDeviceConfirmation({
 }) {
   const t = useIntl();
   return (
-    <Modal
+    <Dialog
       title={t('removeDevice.title', { name: device.name })}
       testId="remove-device-dialog"
       close={onCancel}
     >
       <p>{t('removeDevice.body', { name: device.name })}</p>
-      <button
-        type="button"
-        className="primary full danger"
+      <Button
+        variant="primary"
+        full
+        tone="danger"
         data-testid="confirm-remove-device"
         disabled={busy}
         onClick={onConfirm}
       >
         {t('removeDevice.confirm', { name: device.name })}
-      </button>
-      <button type="button" className="secondary full" data-testid="keep-device" onClick={onCancel}>
+      </Button>
+      <Button variant="secondary" full data-testid="keep-device" onClick={onCancel}>
         {t('removeDevice.keep')}
-      </button>
-    </Modal>
+      </Button>
+    </Dialog>
   );
 }

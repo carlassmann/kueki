@@ -22,6 +22,8 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 4310,
     strictPort: true,
+    // Editors outside this process (agents, scripts) do not trigger FSEvents here.
+    watch: { usePolling: true, interval: 300 },
     allowedHosts: ['.localhost'],
     proxy: {
       '/api': { target: 'http://127.0.0.1:4311', ws: true, xfwd: true, changeOrigin: false },

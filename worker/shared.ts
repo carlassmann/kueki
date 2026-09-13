@@ -61,6 +61,7 @@ export type RequestBody = {
   roomName: unknown;
   locale: unknown;
   sensitivity: number;
+  settings: unknown;
   muted: unknown;
   subscription: unknown;
   target: string;

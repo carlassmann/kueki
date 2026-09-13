@@ -1,16 +1,26 @@
+import { Select } from './components/ui/select';
 import { useIntl, useLocale } from './intl/setup';
 import { useLocalePreference } from './intl/provider';
 import { isLocale } from './intl/locale';
+import './LanguageSelect.css';
+import { Caption } from './components/ui/text';
 
-export function LanguageSelect({ showLabel = true }: { showLabel?: boolean }) {
+export function LanguageSelect({
+  showLabel = true,
+  variant,
+}: {
+  showLabel?: boolean;
+  variant?: 'control' | 'quiet';
+}) {
   const t = useIntl();
   const locale = useLocale();
   const { setLocale } = useLocalePreference();
 
   return (
     <label className="language-select">
-      {showLabel ? <span className="caption">{t('language.label')}</span> : null}
-      <select
+      {showLabel ? <Caption as="span">{t('language.label')}</Caption> : null}
+      <Select
+        variant={variant}
         data-testid="language-select"
         aria-label={t('language.label')}
         value={locale}
@@ -20,7 +30,7 @@ export function LanguageSelect({ showLabel = true }: { showLabel?: boolean }) {
       >
         <option value="en">{t('language.name.en')}</option>
         <option value="de">{t('language.name.de')}</option>
-      </select>
+      </Select>
     </label>
   );
 }

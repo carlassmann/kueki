@@ -1,0 +1,46 @@
+[data-ui='select'] {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+[data-ui='select'] select {
+  min-height: 44px;
+  padding: 8px 34px 8px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: var(--control);
+  box-shadow: 0 0 0 var(--hairline) var(--line-strong);
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+}
+
+[data-ui='select'] svg {
+  position: absolute;
+  right: 12px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+[data-ui='select'][data-variant='quiet'] select {
+  padding: 0 22px 0 0;
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+[data-ui='select'][data-variant='quiet'] svg {
+  right: 4px;
+  color: inherit;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  [data-ui='select'][data-variant='quiet']:hover select,
+  [data-ui='select'][data-variant='quiet']:hover svg {
+    color: var(--ink);
+  }
+}

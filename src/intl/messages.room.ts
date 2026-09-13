@@ -75,8 +75,6 @@ const baseRoomMessages = messages({
 
   'monitor.dim': 'Dim screen',
   'monitor.restoreBrightness': 'Restore brightness',
-  'monitor.dimTitle': 'Reduce screen brightness',
-  'monitor.restoreTitle': 'Restore screen brightness',
 
   'parent.emptyAlt': 'Kueki waiting for a baby device',
   'parent.emptyTitle': 'Add your baby device',
@@ -112,7 +110,9 @@ const baseRoomMessages = messages({
   'sensitivity.low': 'Low',
   'sensitivity.medium': 'Medium',
   'sensitivity.high': 'High',
-  'sensitivity.hint': 'Alerts after 1.5 seconds of sound, with 20 seconds between alerts.',
+  'sensitivity.hint': 'Alerts {$after}, with {$cooldown} between alerts.',
+  'sensitivity.hintInstant': 'as soon as a sound is loud enough',
+  'sensitivity.hintAfter': 'after {$duration} of sound',
 
   'activity.title': 'Activity',
   'activity.last24h': 'Last 24 hours',
@@ -121,6 +121,25 @@ const baseRoomMessages = messages({
   'activity.paused': 'Monitoring paused',
   'activity.offline': 'Device disconnected',
   'activity.empty': 'No activity yet.{#br}{/br}Sound and connection events appear here.',
+
+  'alerts.title': 'Alerts',
+  'alerts.alertAfter': 'Sound before an alert',
+  'alerts.alertAfterHint': 'How long a sound has to last before parents are alerted.',
+  'alerts.cooldown': 'Quiet time after an alert',
+  'alerts.cooldownHint': 'No second sound alert from the same device until this has passed.',
+  'alerts.offlineAlert': 'Alert when a device drops out',
+  'alerts.offlineAlertHint':
+    'How long a baby device may stay disconnected before parents hear about it.',
+  'alerts.retention': 'Keep activity for',
+  'alerts.retentionHint': 'Older sound and connection events are deleted from the room.',
+  'alerts.instant': 'Right away',
+  'alerts.seconds': '{$seconds} seconds',
+  'alerts.minute': '1 minute',
+  'alerts.minutes': '{$minutes} minutes',
+  'alerts.hours': '{$hours} hours',
+  'alerts.day': '1 day',
+  'alerts.days': '{$days} days',
+  'alerts.babyHint': 'Alert settings live on the parent devices in this room.',
 
   'settings.room': 'Room',
   'settings.roomName': 'Room name',
@@ -231,8 +250,6 @@ const deRoomMessages = translate(baseRoomMessages, {
 
   'monitor.dim': 'Bildschirm dimmen',
   'monitor.restoreBrightness': 'Helligkeit zurücksetzen',
-  'monitor.dimTitle': 'Bildschirmhelligkeit verringern',
-  'monitor.restoreTitle': 'Bildschirmhelligkeit zurücksetzen',
 
   'parent.emptyAlt': 'Kueki wartet auf ein Babygerät',
   'parent.emptyTitle': 'Füge dein Babygerät hinzu',
@@ -268,8 +285,9 @@ const deRoomMessages = translate(baseRoomMessages, {
   'sensitivity.low': 'Niedrig',
   'sensitivity.medium': 'Mittel',
   'sensitivity.high': 'Hoch',
-  'sensitivity.hint':
-    'Hinweise nach 1,5 Sekunden Geräusch, mit 20 Sekunden zwischen den Hinweisen.',
+  'sensitivity.hint': 'Alarme {$after}, mit {$cooldown} zwischen den Alarmen.',
+  'sensitivity.hintInstant': 'sobald ein Geräusch laut genug ist',
+  'sensitivity.hintAfter': 'nach {$duration} Geräusch',
 
   'activity.title': 'Aktivität',
   'activity.last24h': 'Letzte 24 Stunden',
@@ -279,6 +297,25 @@ const deRoomMessages = translate(baseRoomMessages, {
   'activity.offline': 'Gerät getrennt',
   'activity.empty':
     'Noch keine Aktivität.{#br}{/br}Geräusch- und Verbindungsereignisse erscheinen hier.',
+
+  'alerts.title': 'Alarme',
+  'alerts.alertAfter': 'Geräusch vor einem Alarm',
+  'alerts.alertAfterHint': 'So lange muss ein Geräusch anhalten, bevor Eltern alarmiert werden.',
+  'alerts.cooldown': 'Ruhe nach einem Alarm',
+  'alerts.cooldownHint': 'So lange gibt es keinen zweiten Geräusch-Alarm vom selben Gerät.',
+  'alerts.offlineAlert': 'Alarm, wenn ein Gerät abbricht',
+  'alerts.offlineAlertHint':
+    'So lange darf ein Babygerät getrennt sein, bevor Eltern davon erfahren.',
+  'alerts.retention': 'Aktivität behalten für',
+  'alerts.retentionHint': 'Ältere Geräusch- und Verbindungsereignisse werden im Raum gelöscht.',
+  'alerts.instant': 'Sofort',
+  'alerts.seconds': '{$seconds} Sekunden',
+  'alerts.minute': '1 Minute',
+  'alerts.minutes': '{$minutes} Minuten',
+  'alerts.hours': '{$hours} Stunden',
+  'alerts.day': '1 Tag',
+  'alerts.days': '{$days} Tage',
+  'alerts.babyHint': 'Die Alarm-Einstellungen liegen auf den Elterngeräten dieses Raums.',
 
   'settings.room': 'Raum',
   'settings.roomName': 'Raumname',

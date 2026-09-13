@@ -23,12 +23,22 @@ export class LevelHold {
 
 export class NoiseDetector {
   private lastAlert = -Infinity;
+  private loudSince?: number;
+
   constructor(
     public threshold: number = SENSITIVITY_THRESHOLDS[1],
-    private cooldown = 20000,
+    public cooldown = 20000,
+    public sustain = 0,
   ) {}
+
   sample(rms: number, now: number) {
-    if (rms < this.threshold || now - this.lastAlert < this.cooldown) return false;
+    if (rms < this.threshold) {
+      this.loudSince = undefined;
+      return false;
+    }
+    this.loudSince ??= now;
+    if (now - this.loudSince < this.sustain) return false;
+    if (now - this.lastAlert < this.cooldown) return false;
     this.lastAlert = now;
     return true;
   }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Modal } from './Modal';
+import { Dialog } from './components/ui/dialog';
 import { useIntl } from './intl/setup';
+import './InvitationScanner.css';
 
 export function InvitationScanner({
   onScan,
@@ -61,11 +62,11 @@ export function InvitationScanner({
     };
   }, [onScan]);
   return (
-    <Modal title={t('scanner.title')} testId="scanner-dialog" close={close}>
+    <Dialog title={t('scanner.title')} testId="scanner-dialog" close={close}>
       <video ref={video} autoPlay muted playsInline className="invitation-camera" />
       <p role="status" data-testid="scanner-status" data-state={error ? 'error' : 'scanning'}>
         {error || t('scanner.prompt')}
       </p>
-    </Modal>
+    </Dialog>
   );
 }

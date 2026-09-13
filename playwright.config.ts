@@ -8,7 +8,7 @@ export default defineConfig({
   expect: { timeout: 10000 },
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:4310',
+    baseURL: 'http://localhost:4313',
     locale: 'en-US',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',

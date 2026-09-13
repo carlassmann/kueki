@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { useIntl } from './intl/setup';
+import './InvitationQr.css';
 
 export function InvitationQr({ code }: { code: string }) {
   const t = useIntl();

@@ -1,28 +1,37 @@
 # Kueki
 
-A private audio baby monitor PWA. React, TanStack Router, TypeScript, and Bun tooling. Cloudflare Workers hosts the app and API. Each room has a SQLite-backed Durable Object for devices, WebSocket signaling, events, and notification retries. Live audio uses WebRTC with Cloudflare Realtime TURN as fallback.
+A baby monitor that runs in the browser. Two devices, one room. The phone in the nursery listens, the phone with you plays live audio and gets a push notification when the room gets loud.
 
-No Jazz, Vercel, or separate database account is required. No audio is recorded or stored. Browser push delivery still goes through Apple, Google, or Mozilla's push services as required by the browser.
+Kueki is a working prototype. Nothing is deployed yet.
 
-Kueki is a working local prototype. Nothing has been deployed.
+## Why I built it
 
-## What you can do
+We have phones, tablets and laptops lying around the house. Why buy another device when the ones we own already do the job? I wanted to turn a phone into a baby monitor. The apps I tried were overkill and still missed the things I cared about, and I was curious whether a progressive web app could cover it and run on anything with a browser.
 
-- Pair multiple baby and parent devices in one room without an account.
-- Remove devices from a parent screen and reset invitation links.
-- Listen to multiple babies at once, with separate playback controls.
-- Receive Web Push for sustained sound, paused monitoring, and disconnected baby devices, including when parent tabs are closed.
-- Keep baby and parent screens awake while Kueki is open. The app shows when the browser denies wake lock.
-- Adjust each baby's saved sensitivity from any parent device.
-- View and reset room activity, with up to 30 events from the last 24 hours.
-- Install the PWA, follow the system appearance, and dim either device's screen.
-- Use Kueki in English or German. Kueki follows the browser language and can be switched in settings or the landing footer.
+It can. Kueki uses the screen wake lock, the microphone, WebRTC and web push, which is everything a baby monitor needs. I also wanted several baby devices and several parent devices in the same room, and adding one should take a single link.
 
-Real desktop Chrome and Safari testing covered microphones, cross-browser audio, simultaneous listening, push delivery with parent tabs closed, and wake locks. Chrome installation and service-worker updates also passed. Physical locked-phone delivery and Cloudflare TURN across networks still need testing. See [test evidence](TESTING.md).
+Kueki was the project name of my first son while he was still in my wife's belly. It is a cute version of Küken, German for chick. He is two now and we are expecting our second, which is why I am finally building this.
 
-## Try locally
+## What it does
 
-Prerequisites: Bun, Node 22 or newer for Wrangler, and the local `work` process manager.
+- Pair any number of baby and parent devices in one room, without an account.
+- Listen to several babies at once, each with its own playback control.
+- Send a push notification for sustained sound, paused monitoring and disconnected baby devices, including when the parent tab is closed.
+- Keep monitoring screens awake, and say so when the browser refuses.
+- Set alert timing per room: how long a sound has to last, how quiet it stays afterwards, when a dropped device counts as gone, and how long activity is kept.
+- Install as a PWA, follow the system light or dark appearance, dim either screen, and switch between English and German.
+
+Kueki measures sustained sound, not whether a baby is crying. It is an extra pair of ears, not a replacement for checking on your baby.
+
+## How it works
+
+React, TanStack Router and TypeScript on the front end, built with Vite, scripted with Bun. One Cloudflare Worker serves both the app and the API. Each room is a Durable Object with SQLite storage holding its devices, WebSocket signaling, events and queued notifications, so state survives eviction and restarts.
+
+Live audio is WebRTC between the devices, with Cloudflare Realtime TURN as a relay when a network blocks a direct connection. No audio is recorded or stored anywhere. Push delivery goes through Apple, Google or Mozilla because the browser requires it.
+
+## Run it locally
+
+You need Bun, Node 22 or newer for Wrangler, and the local `work` process manager.
 
 ```sh
 bun install
@@ -31,112 +40,19 @@ bun run build
 work up
 ```
 
-Open http://localhost:4310/app. Create a room, invite a device in a separate browser or profile, choose Baby there, and start monitoring. Tap Listen on the parent. Multiple tabs in the same browser profile share one device identity.
+Open http://localhost:4310/app, create a room, then open the invitation in a second browser profile and choose Baby there. Tabs in the same profile share one device identity.
 
-Wrangler runs the backend in local Cloudflare workerd on port 4311, with durable storage under `.data/cloudflare`. Bun runs Vite and project scripts. Wrangler's CLI uses its supported Node launcher. Use `work restart api` after changing local secrets.
+Port 4310 is Vite with hot reload. Port 4313 serves the built app from `dist` and is what the end-to-end tests use, so rebuild before pointing anything at it. Wrangler runs the backend on port 4311 with storage under `.data/cloudflare`; restart it with `work restart api` after changing secrets.
 
-For hot reload, run `work run dev` and open http://localhost:4314/app. Port 4310 serves the built app, so rebuild after code changes.
+To reach Kueki from your phones over Wi-Fi, and to deploy it to Cloudflare, see [hosting](docs/hosting.md). For invitations, removing access and switching rooms, see [rooms](docs/rooms.md).
 
-Migrating from the Jazz prototype requires a new room. The earlier audio experiment on port 4320 is archived in [the experiment report](docs/jazz-audio-experiment.md).
-
-Development commands:
-
-- `work run dev`: Vite hot reload on port 4314.
-- `work run preview`: production preview on port 4313.
-- `work stop api`: stop the local Worker.
-- `work down`: stop project processes.
-
-## Two phones on your Wi-Fi
-
-```sh
-bun run setup:https
-bun run build
-work run https
-```
-
-The setup command prints the LAN URL on port 4312. Install and trust the local CA from `/kueki-local-ca.crt` on each phone. On iOS, enable full trust under Settings → General → About → Certificate Trust Settings. Certificates stay local and must never be committed or deployed.
-
-Leave the baby device plugged in, with Kueki open and its screen awake. Keep the Mac running while using the local backend. Same-network audio can work without TURN; restrictive networks need relay credentials.
-
-## Cloudflare setup
-
-The Worker and Durable Object configuration is in `wrangler.jsonc`. The `v1` migration creates the Room class with SQLite-backed storage. Static assets come from `dist`; `/app` supports direct navigation and offline launch.
-
-1. Sign in with `bunx wrangler login`.
-2. Create a Cloudflare Realtime TURN key in the Cloudflare dashboard.
-3. Add the secrets below to ignored `.dev.vars`. Use your own contact URL or email.
-4. Run `bun run check`, `bun run build`, and `bun run test`. The Worker test bundles with `wrangler deploy --dry-run` and uploads nothing.
-5. When ready to publish, run `bunx wrangler deploy --secrets-file .dev.vars`. This creates the Worker and supplies its secrets in the same deployment. It has not been run.
-6. Open the HTTPS URL printed by Wrangler, pair fresh devices, and complete the [hosted checks](TESTING.md#before-relying-on-the-hosted-app).
-
-For later secret changes, use `bunx wrangler secret put NAME`. Keep `.dev.vars` private.
-
-| Secret             | Purpose                                         |
-| ------------------ | ----------------------------------------------- |
-| VAPID_PUBLIC_KEY   | Browser push subscription key                   |
-| VAPID_PRIVATE_KEY  | Server push signing key                         |
-| VAPID_SUBJECT      | Contact URI, such as mailto:you@example.com     |
-| TURN_KEY_ID        | Cloudflare Realtime TURN key ID                 |
-| TURN_KEY_API_TOKEN | Server-only token for issuing relay credentials |
-
-Use a real HTTPS contact URL or email for `VAPID_SUBJECT`; Apple rejects reserved placeholder domains such as `kueki.example` with `BadJwtToken`. If omitted, Kueki uses this repository's public URL.
-
-`bun run setup` generates local VAPID keys and copies only the push settings into `.dev.vars`. Keep VAPID keys stable after devices subscribe. TURN credentials are generated only for authenticated room devices, cached for five minutes, and valid for 24 hours. New listening connections fetch configuration again. An uninterrupted session exceeding that duration needs credential renewal, which is not yet implemented.
-
-Without TURN secrets, local audio attempts direct WebRTC using Cloudflare STUN. With secrets configured, failed credential generation is reported rather than silently omitting the relay.
-
-## Invite a caregiver or remove access
-
-From any parent device, choose **Invite device → Copy invite link**. The caregiver opens it, chooses **Me**, names their device, and joins. They can listen live and enable notifications. The invitation also includes a QR containing the raw code: scan it, copy the text, and paste it into **Join a room** in the installed app. **Join a room → Scan QR code** can also open the camera and fill the code directly. Camera capture stops after scanning or closing; manual entry remains available if permission is denied. Displayed and entered codes use monospace. Invitations do not expire automatically. If their device already belongs to another room, Kueki asks whether to switch rooms before opening the invitation. The previous membership stays saved.
-
-To remove access, open **Settings → Manage this device → Room access → Remove** beside the device. This revokes that device's session, disconnects its live audio, removes its push subscription and queued notifications, and resets the room invitation. Old links stop working. Existing room members stay connected and can copy the new invitation. A notification already accepted by a push provider may still arrive.
-
-**Invite device → Reset invitation link** invalidates old links without removing existing members. Leaving voluntarily removes only that device; it does not reset the invitation.
-
-Every parent has these controls. Kueki has no owner or restricted guest role. If someone joined on multiple devices, remove each device. They can regain access only through a fresh invitation shared by a remaining room member.
-
-## Manage and switch rooms
-
-Tap the room name to open **Your rooms**. Create or join another room, then select a saved room to activate it. Memberships stay saved in this browser across reloads; existing installations keep their current room automatically.
-
-Only the active room monitors or sends notifications to this device. Switching stops live audio and baby monitoring, removes the previous room’s push subscription and pending notifications, and preserves access for later. Switching requires a server connection. Start monitoring or listening again after switching back. Notifications already accepted by a push provider may still arrive.
-
-Parents can rename the room under **Settings → Room**. **Settings → Manage this device** contains device names and participant removal. Names sync to connected devices. **Leave room** revokes your membership; **Forget** only removes an inactive room from this browser’s saved list.
-
-## Reliability and privacy
-
-There is no application-level device-count cap. Practical capacity depends on browser and Cloudflare limits. Parents can listen to multiple babies simultaneously, with independent playback controls. Invitation codes are random capabilities; each device also has its own token. The public room ID alone grants no access. Device tokens are stored as hashes; push subscriptions and TURN API tokens are never broadcast.
-
-If the connection drops, Kueki stops live playback and reconnects its room connection automatically. Tap Listen again after reconnection to resume audio. If the browser pauses playback, Kueki offers Resume audio instead of continuing to say it is listening.
-
-Room WebSockets use Durable Object hibernation and restore socket metadata after eviction. The baby sends a heartbeat every three seconds. A durable alarm checks missing heartbeats from connected baby devices after twelve seconds, including paused baby devices, and records a disconnect event once. Alarm scheduling and delivery are not exact deadlines.
-
-Alert events and per-parent notification jobs are created in one SQLite transaction. Jobs survive runtime restarts, retry failures for up to sixty seconds, and stop retrying invalid push subscriptions. Retries can deliver more than once after an ambiguous response; notification tags use stable event IDs to replace duplicates. Events expire after one day and are capped at thirty per room. Activity shows every stored event, and parents can clear the log for the room. Clearing activity does not cancel notification delivery.
-
-Kueki measures sustained sound, not whether a baby is crying. It is an extra pair of ears, not a replacement for checking on your baby.
-
-Baby sensitivity is stored per device in its room and can be changed by that baby or any parent in the room. Changes sync immediately and survive reloads. Parents request screen wake lock while the room is open, including Activity and Settings. Wake lock can still be denied or revoked by the OS; Kueki displays its status and retries after release, returning to the foreground, or interacting with the screen.
-
-Kueki follows the device's light or dark appearance. Screen dimming is a separate device-local preference available on baby and parent screens, and persists across reloads.
-
-## Verification
+## Tests
 
 ```sh
 bun run check
 bun run build
 bun run test
-bun run setup:https
-work up
-work run https
 bun run test:e2e
 ```
 
-The Workers test exercises real workerd and SQLite persistence with mocked external TURN and push services. Browser tests use synthetic microphones in Chromium and WebKit. See `TESTING.md` for evidence and remaining physical-device checks.
-
-References: [Durable Object WebSockets](https://developers.cloudflare.com/durable-objects/best-practices/websockets/), [alarms](https://developers.cloudflare.com/durable-objects/api/alarms/), [Cloudflare TURN credentials](https://developers.cloudflare.com/realtime/turn/generate-credentials/).
-
-## App navigation and updates
-
-`/app` is the monitor, `/app/activity` is the event log, and `/app/settings` contains device and app settings. Setup uses `/app/create` and `/app/join`. TanStack Router handles navigation, history, and direct links. The room connection and audio live in the shared app layout and remain active while switching pages. Existing hash invitation links and setup query links still work.
-
-An available service-worker update appears in a toast on app load or after returning to the foreground. Updating requires an explicit click. While this device is monitoring or listening, the toast asks you to pause first and does not offer the update action. Installation is suggested with a toast. Privacy information lives in Settings.
+The Workers test runs against real workerd and SQLite with TURN and push mocked. Browser tests drive Chromium and WebKit with synthetic microphones. [TESTING.md](TESTING.md) records what has been verified on real devices and what still needs a physical phone.

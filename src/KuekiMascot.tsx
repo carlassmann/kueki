@@ -40,7 +40,7 @@ export function KuekiMascot({
   return (
     <button
       type="button"
-      className={`monitor-mascot ${className} ${state}`}
+      className={`monitor-mascot ${className}`}
       data-testid="kueki-mascot"
       data-state={state}
       data-pose={awake ? 'awake' : 'sleeping'}

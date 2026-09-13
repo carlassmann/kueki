@@ -27,6 +27,11 @@ export class BabyAudio {
     this.detector.threshold = value;
   }
 
+  set alertTiming({ cooldownMs, alertAfterMs }: { cooldownMs: number; alertAfterMs: number }) {
+    this.detector.cooldown = cooldownMs;
+    this.detector.sustain = alertAfterMs;
+  }
+
   async start() {
     const generation = ++this.generation;
     if (!navigator.mediaDevices?.getUserMedia) {

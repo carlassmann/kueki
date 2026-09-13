@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import { AddIcon, ParentIcon, SettingsIcon, SoundIcon } from '../../../icons';
 import { useIntl } from '../../../intl/setup';
+import { Button } from '../../../components/ui/button';
+import './room-header.css';
 
 const ROOM_NAVIGATION = [
   ['/app', 'nav-monitor', 'nav.monitor', ParentIcon],
@@ -13,10 +15,12 @@ export function RoomHeader({
   roomName,
   roomSwitcher,
   onInvite,
+  indicator,
 }: {
   roomName: string;
   roomSwitcher: ReactNode;
   onInvite: () => void;
+  indicator: ReactNode;
 }) {
   const t = useIntl();
   return (
@@ -36,16 +40,18 @@ export function RoomHeader({
         ))}
       </nav>
       <div className="room-tools">
-        <button
-          type="button"
-          className="secondary small invite-device-button"
+        {indicator}
+        <Button
+          variant="secondary"
+          size="small"
+          className="invite-device-button"
           data-testid="invite-device"
           aria-label={t('room.inviteDevice')}
           onClick={onInvite}
         >
           <AddIcon size={18} weight="bold" />
           <span className="invite-device-label">{t('room.inviteDevice')}</span>
-        </button>
+        </Button>
       </div>
     </header>
   );

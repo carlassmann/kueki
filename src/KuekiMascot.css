@@ -3,16 +3,12 @@
   display: flex;
   width: 230px;
   height: 190px;
-  margin: 0 auto -14px;
+  margin: 0 auto;
   padding: 0;
   color: var(--mint);
   background: transparent;
   border-radius: 32%;
   -webkit-tap-highlight-color: transparent;
-}
-
-.monitor-mascot:active {
-  transform: none;
 }
 
 .kueki-character {
@@ -25,7 +21,7 @@
   transition: opacity 220ms ease;
 }
 
-.monitor-mascot.paused .kueki-character {
+.monitor-mascot[data-state='paused'] .kueki-character {
   opacity: 0.7;
 }
 
@@ -126,30 +122,30 @@
   opacity: 0;
 }
 
-.monitor-mascot.sound .kueki-sound-marks {
+.monitor-mascot[data-state='sound'] .kueki-sound-marks {
   opacity: 1;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .monitor-mascot:not(.paused) .kueki-breath {
+  .monitor-mascot:not([data-state='paused']) .kueki-breath {
     animation: kueki-chest-breath 4s cubic-bezier(0.45, 0, 0.35, 1) infinite;
   }
 
-  .monitor-mascot:not(.paused) .kueki-head-breathe {
+  .monitor-mascot:not([data-state='paused']) .kueki-head-breathe {
     animation: kueki-head-breath 4s cubic-bezier(0.45, 0, 0.35, 1) infinite;
     animation-delay: 120ms;
   }
 
-  .monitor-mascot:not(.paused) .kueki-wing-breathe {
+  .monitor-mascot:not([data-state='paused']) .kueki-wing-breathe {
     animation: kueki-wing-breath 4s cubic-bezier(0.45, 0, 0.35, 1) infinite;
     animation-delay: 200ms;
   }
 
-  .monitor-mascot:not(.paused) .kueki-sleep-mark {
+  .monitor-mascot:not([data-state='paused']) .kueki-sleep-mark {
     animation: kueki-dream 4.8s ease-in-out infinite;
   }
 
-  .monitor-mascot:not(.paused) .kueki-sleep-mark + .kueki-sleep-mark {
+  .monitor-mascot:not([data-state='paused']) .kueki-sleep-mark + .kueki-sleep-mark {
     animation-delay: 900ms;
   }
 
@@ -242,5 +238,12 @@
   .monitor-mascot .kueki-tuft,
   .monitor-mascot .kueki-eyes-open {
     transform: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .monitor-mascot {
+    width: 210px;
+    height: 170px;
   }
 }

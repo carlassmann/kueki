@@ -411,12 +411,12 @@ test('first-run layout, keyboard dialog, invalid invite and denied microphone', 
   await page.getByTestId('submit-room').click();
   await expect(page.getByTestId('form-error')).toBeVisible();
   await create(page, 'Baby', 'Permission test');
-  await page.context().grantPermissions([], { origin: 'http://localhost:4310' });
+  await page.context().grantPermissions([], { origin: 'http://localhost:4313' });
   const cdp = await context.newCDPSession(page);
   await cdp.send('Browser.setPermission', {
     permission: { name: 'microphone' },
     setting: 'denied',
-    origin: 'http://localhost:4310',
+    origin: 'http://localhost:4313',
   });
   await page.getByTestId('monitor-toggle').click();
   await expect(page.getByTestId('error-notice')).toBeVisible();

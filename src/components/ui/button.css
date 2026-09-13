@@ -1,0 +1,140 @@
+[data-ui='button'] {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  --button-ink: var(--ink);
+  --button-surface: transparent;
+  --button-shadow: none;
+
+  border-radius: var(--radius);
+  padding: 13px 18px;
+  color: var(--button-ink);
+  background: var(--button-surface);
+  box-shadow: var(--button-shadow);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+[data-ui='button'][data-size='small'] {
+  min-height: 44px;
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+[data-ui='button'][data-full] {
+  width: 100%;
+}
+
+[data-ui='button'][data-variant='primary'] {
+  --button-ink: white;
+  --button-surface: linear-gradient(180deg, var(--primary-top), var(--primary));
+  --button-shadow:
+    0 1px 0 rgb(255 255 255 / 22%) inset, 0 0 0 0.5px color-mix(in srgb, var(--primary) 70%, #000),
+    var(--shadow-primary);
+}
+
+[data-ui='button'][data-variant='primary'][data-tone='danger'] {
+  --button-ink: var(--surface);
+  --button-surface: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--danger) 85%, white),
+    var(--danger)
+  );
+  --button-shadow:
+    0 1px 0 rgb(255 255 255 / 22%) inset, 0 0 0 0.5px color-mix(in srgb, var(--danger) 70%, #000),
+    var(--shadow-1);
+}
+
+[data-ui='button'][data-variant='secondary'] {
+  --button-surface: var(--control);
+  --button-shadow: 0 0 0 var(--hairline) var(--line-strong);
+}
+
+[data-ui='button'][data-variant='soft'] {
+  --button-surface: var(--primary-soft);
+  --button-shadow: 0 0 0 var(--hairline) var(--line);
+}
+
+[data-ui='button'][data-variant='quiet'] {
+  --button-ink: var(--muted);
+  padding-inline: 10px;
+}
+
+[data-ui='button'][data-variant='quiet'][data-size='small'] {
+  --button-ink: var(--ink);
+  --button-surface: color-mix(in srgb, var(--ink) 6%, transparent);
+  padding-inline: 14px;
+}
+
+[data-ui='button'][data-variant='quiet'][data-tone='danger'] {
+  --button-ink: var(--danger);
+}
+
+[data-ui='button'][data-variant='quiet'][data-tone='danger'][data-size='small'] {
+  --button-surface: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+[data-ui='button'][data-variant='icon'] {
+  --button-ink: var(--muted);
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-ui='button'][data-variant='primary'] {
+    --button-ink: #131822;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  [data-ui='button'][data-variant='primary']:hover {
+    --button-surface: linear-gradient(180deg, var(--primary), var(--primary-hover));
+    --button-shadow:
+      0 1px 0 rgb(255 255 255 / 22%) inset,
+      0 0 0 0.5px color-mix(in srgb, var(--primary) 70%, #000), 0 12px 26px rgb(64 89 132 / 28%);
+  }
+
+  [data-ui='button'][data-variant='primary'][data-tone='danger']:hover {
+    --button-surface: linear-gradient(
+      180deg,
+      var(--danger),
+      color-mix(in srgb, var(--danger) 80%, #000)
+    );
+  }
+
+  [data-ui='button'][data-variant='secondary']:hover {
+    --button-surface: var(--control-hover);
+    --button-shadow: 0 0 0 var(--hairline) var(--line-strong), var(--shadow-1);
+  }
+
+  [data-ui='button'][data-variant='soft']:hover {
+    --button-surface: color-mix(in srgb, var(--primary-soft) 80%, var(--ink));
+  }
+
+  [data-ui='button'][data-variant='quiet']:hover {
+    --button-ink: var(--ink);
+    --button-surface: color-mix(in srgb, var(--ink) 5%, transparent);
+  }
+
+  [data-ui='button'][data-variant='quiet'][data-tone='danger']:hover {
+    --button-ink: var(--danger);
+    --button-surface: color-mix(in srgb, var(--danger) 12%, transparent);
+  }
+
+  [data-ui='button'][data-variant='icon']:hover {
+    --button-ink: var(--ink);
+    --button-surface: color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+}
+
+[data-ui='button']:active:not(:disabled) {
+  transform: scale(0.965);
+  transition-duration: 90ms;
+}

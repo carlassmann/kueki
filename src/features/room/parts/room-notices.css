@@ -1,0 +1,11 @@
+.connection-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+}
+
+.wake-status {
+  display: inline-flex;
+  align-items: center;
+}

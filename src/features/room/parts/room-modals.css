@@ -1,0 +1,24 @@
+.invite-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.setting-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.setting-detail > [data-variant='quiet'] {
+  align-self: center;
+}
+
+.setting-detail > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.setting-detail p {
+  margin: 3px 0 0;
+}

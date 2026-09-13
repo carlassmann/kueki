@@ -1,0 +1,24 @@
+[data-ui='notice'] {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 14px 0;
+  padding: 13px 16px;
+  border-radius: var(--radius);
+  color: var(--danger);
+  background: var(--danger-soft);
+  box-shadow: 0 0 0 var(--hairline) color-mix(in srgb, currentColor 14%, transparent) inset;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+[data-ui='notice'] > span {
+  min-width: 0;
+  flex: 1;
+}
+
+[data-ui='notice'][data-tone='sound'] {
+  color: var(--mint);
+  background: var(--mint-soft);
+}

@@ -10,7 +10,7 @@ import {
   PauseIcon,
   SoundIcon,
 } from '../../../icons';
-import { relativeTime } from '../../../format';
+import { durationText, relativeTime } from '../../../format';
 import type { PublicDevice } from '../../../protocol';
 import { AudioMeter } from '../parts/room-components';
 import { useRoom } from '../room-context';
@@ -19,6 +19,12 @@ import { KuekiMascot } from '../../../KuekiMascot';
 import { T, useIntl } from '../../../intl/setup';
 import type { MessageKey } from '../../../intl/messages';
 import type { AudioStatus } from '../lib/audio-calls';
+import { Button } from '../../../components/ui/button';
+import './monitor-screen.css';
+import { Notice } from '../../../components/ui/notice';
+import { Status } from '../../../components/ui/status';
+import { Slider } from '../../../components/ui/slider';
+import { Caption } from '../../../components/ui/text';
 
 const AUDIO_ACTIVE_STATUSES: AudioStatus[] = ['connecting', 'live', 'paused'];
 const AUDIO_STATUS_KEYS = {
@@ -47,23 +53,28 @@ function BabyMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
 
   return (
     <>
+      <div className="monitor-topline">
+        <span className="monitor-device" data-testid="monitor-device">
+          {room.session.name}
+        </span>
+        <DimControl room={room} />
+      </div>
       <div className="monitor-hero">
         <KuekiMascot
           state={!room.active ? 'paused' : soundDetected ? 'sound' : 'quiet'}
           alt={t('monitor.mascotAlt')}
         />
-        <span
-          className={`status ${room.active && room.connected ? 'green' : ''}`}
+        <Status
+          tone={room.active && room.connected ? 'good' : 'neutral'}
           data-testid="monitor-status"
           data-state={!room.active ? 'ready' : room.connected ? 'monitoring' : 'local'}
         >
-          <i />
           {room.active
             ? room.connected
               ? t('monitor.statusMonitoring')
               : t('monitor.statusLocal')
             : t('monitor.statusReady')}
-        </span>
+        </Status>
         <h2>{room.active ? t('monitor.titleMonitoring') : t('monitor.titleReady')}</h2>
         <p>{room.active ? t('monitor.subtitleMonitoring') : t('monitor.subtitleReady')}</p>
       </div>
@@ -80,9 +91,9 @@ function BabyMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
         </div>
         <AudioMeter value={room.active ? room.level : 0} />
       </div>
-      <button
-        type="button"
-        className={`primary full ${room.active ? 'stop' : ''}`}
+      <Button
+        variant={room.active ? 'soft' : 'primary'}
+        full
         data-testid="monitor-toggle"
         data-active={room.active}
         disabled={room.busy || (!room.active && !room.connected)}
@@ -94,7 +105,7 @@ function BabyMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
           <MicrophoneIcon size={19} weight="fill" />
         )}{' '}
         {room.busy ? t('monitor.opening') : room.active ? t('monitor.pause') : t('monitor.start')}
-      </button>
+      </Button>
       <div className="baby-checks">
         <span>
           <MicrophoneIcon size={16} />
@@ -109,8 +120,7 @@ function BabyMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
           {t('monitor.parentsOnline', { count: room.parents.length })}
         </span>
       </div>
-      {(room.active || room.dimmed) && <DimControl room={room} />}
-      {room.active && !room.awake && <p className="notice">{t('monitor.keepAwake')}</p>}
+      {room.active && !room.awake && <Notice>{t('monitor.keepAwake')}</Notice>}
       <Sensitivity
         id="sensitivity"
         testId="baby-sensitivity"
@@ -124,18 +134,18 @@ function BabyMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
 function DimControl({ room }: { room: ReturnType<typeof useRoom> }) {
   const t = useIntl();
   return (
-    <button
-      type="button"
-      className="secondary small dim-control"
+    <Button
+      variant="secondary"
+      size="small"
+      className="dim-control"
       data-testid="dim-toggle"
       data-on={room.dimmed}
       aria-pressed={room.dimmed}
-      title={room.dimmed ? t('monitor.restoreTitle') : t('monitor.dimTitle')}
       onClick={room.toggleDim}
     >
       {room.dimmed ? <BrightIcon size={18} /> : <DimIcon size={18} />}
       {room.dimmed ? t('monitor.restoreBrightness') : t('monitor.dim')}
-    </button>
+    </Button>
   );
 }
 
@@ -149,20 +159,13 @@ function ParentMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
         <p>
           <T k="parent.emptyBody" components={{ br: () => <br /> }} />
         </p>
-        <button
-          type="button"
-          className="primary"
-          data-testid="empty-nest-invite"
-          onClick={room.openInvitation}
-        >
+        <Button variant="primary" data-testid="empty-nest-invite" onClick={room.openInvitation}>
           {t('parent.emptyInvite')} <ForwardIcon size={18} />
-        </button>
+        </Button>
         {room.dimmed && <DimControl room={room} />}
       </div>
     );
   }
-
-  const listening = room.babies.some((device) => isListening(room.audioStatuses[device.id]));
 
   return (
     <div className="device-list">
@@ -181,8 +184,8 @@ function ParentMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
             </div>
             <div>
               <h3>{device.name}</h3>
-              <span
-                className={`status ${device.monitoring && room.connected ? 'green' : 'amber'}`}
+              <Status
+                tone={device.monitoring && room.connected ? 'good' : 'warning'}
                 data-testid="device-status"
                 data-state={
                   !room.connected
@@ -194,7 +197,6 @@ function ParentMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
                         : 'paused'
                 }
               >
-                <i />
                 {!room.connected
                   ? t('parent.deviceUnknown')
                   : !device.online
@@ -202,7 +204,7 @@ function ParentMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
                     : device.monitoring
                       ? t('parent.deviceMonitoring')
                       : t('parent.devicePaused')}
-              </span>
+              </Status>
             </div>
           </div>
           <AudioMeter value={device.monitoring && room.connected ? device.level : 0} />
@@ -215,34 +217,34 @@ function ParentMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
             onChange={(value) => void room.changeSensitivity(device.id, value)}
           />
           <div className="device-bottom">
-            <span className="caption">
+            <Caption as="span">
               {device.lastNoise
                 ? t('parent.deviceLastSound', { time: relativeTime(device.lastNoise) })
                 : t('parent.deviceNoSounds')}
-            </span>
+            </Caption>
             <div className="device-actions">
               <MuteToggle room={room} device={device} />
               {isListening(room.audioStatuses[device.id]) ? (
-                <button
-                  type="button"
-                  className="secondary small"
+                <Button
+                  variant="secondary"
+                  size="small"
                   data-testid="listen-toggle"
                   data-listening="true"
                   onClick={() => room.stopListening(device.id)}
                 >
                   <PauseIcon size={17} weight="fill" /> {t('parent.stopListening')}
-                </button>
+                </Button>
               ) : (
-                <button
-                  type="button"
-                  className="primary small"
+                <Button
+                  variant="primary"
+                  size="small"
                   data-testid="listen-toggle"
                   data-listening="false"
                   disabled={!room.connected || !device.monitoring}
                   onClick={() => room.listenTo(device.id)}
                 >
                   <ParentIcon size={18} /> {t('parent.listen')}
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -268,7 +270,7 @@ function ParentMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
           )}
         </article>
       ))}
-      {(listening || room.dimmed) && <DimControl room={room} />}
+      <DimControl room={room} />
     </div>
   );
 }
@@ -312,9 +314,10 @@ function MuteToggle({ room, device }: { room: ReturnType<typeof useRoom>; device
   const muted = room.mutedBabies.includes(device.id);
 
   return (
-    <button
-      type="button"
-      className="quiet small mute-toggle"
+    <Button
+      variant="quiet"
+      size="small"
+      className="mute-toggle"
       data-testid="mute-toggle"
       data-muted={muted}
       aria-pressed={muted}
@@ -323,7 +326,7 @@ function MuteToggle({ room, device }: { room: ReturnType<typeof useRoom>; device
     >
       {muted ? <AlertMutedIcon size={17} /> : <AlertIcon size={17} />}
       {muted ? t('mute.muted') : t('mute.mute')}
-    </button>
+    </Button>
   );
 }
 
@@ -343,16 +346,16 @@ function Sensitivity({
   onChange: (value: number) => void;
 }) {
   const t = useIntl();
+  const { settings } = useRoom();
   return (
     <div className="sensitivity">
       <label htmlFor={id}>
         {t('sensitivity.label')} <span>{t(SENSITIVITY_KEYS[value - 1]!)}</span>
       </label>
-      <input
+      <Slider
         id={id}
         data-testid={testId}
         aria-label={label}
-        type="range"
         min="1"
         max="3"
         step="1"
@@ -360,7 +363,16 @@ function Sensitivity({
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
       />
-      {id === 'sensitivity' && <p className="caption">{t('sensitivity.hint')}</p>}
+      {id === 'sensitivity' && (
+        <Caption>
+          {t('sensitivity.hint', {
+            after: settings.alertAfterMs
+              ? t('sensitivity.hintAfter', { duration: durationText(settings.alertAfterMs) })
+              : t('sensitivity.hintInstant'),
+            cooldown: durationText(settings.cooldownMs),
+          })}
+        </Caption>
+      )}
     </div>
   );
 }

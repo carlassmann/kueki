@@ -1,5 +1,5 @@
 import { DurableObject } from 'cloudflare:workers';
-import { OFFLINE_ALERT_MS, OFFLINE_MS, type Signal } from '../src/protocol';
+import { OFFLINE_MS, roomSettings, type RoomSettings, type Signal } from '../src/protocol';
 import {
   type Env,
   type Device,
@@ -24,8 +24,6 @@ const AUTHENTICATION_TIMEOUT_MS = 5_000;
 const MESSAGE_WINDOW_MS = 10_000;
 const MESSAGE_LIMIT = 120;
 const MAX_MESSAGE_BYTES = 16_000;
-const NOISE_COOLDOWN_MS = 20_000;
-const EVENT_RETENTION_MS = 86_400_000;
 const DELIVERY_LIFETIME_MS = 60_000;
 const ICE_CACHE_MS = 300_000;
 
@@ -156,6 +154,13 @@ export class Room extends DurableObject<Env> {
         return json({ roomKey });
       }
 
+      if (path === '/api/room-settings') {
+        if (device.role !== 'parent') throw new RequestError('error.roomSettings', 403);
+        this.put('room', 'settings', roomSettings(body.settings));
+        this.broadcast();
+        await this.schedule();
+        return json({ ok: true });
+      }
       if (path === '/api/sensitivity') {
         const target = this.get<Device>('device', body.target);
         if (
@@ -334,7 +339,7 @@ export class Room extends DurableObject<Env> {
     if (kind === 'noise') {
       if (device.role !== 'baby' || !device.monitoring || now - device.lastSeen > OFFLINE_MS)
         throw new RequestError('error.startMonitoring');
-      if (now - device.lastNoise < NOISE_COOLDOWN_MS) return;
+      if (now - device.lastNoise < this.settings().cooldownMs) return;
       device.lastNoise = now;
       this.put('device', device.id, device);
     }
@@ -361,6 +366,7 @@ export class Room extends DurableObject<Env> {
   }
   private state() {
     const now = Date.now();
+    const settings = this.settings();
     const devices = this.all<Device>('device');
     const mutedBy = (babyId: string) =>
       devices
@@ -370,6 +376,7 @@ export class Room extends DurableObject<Env> {
       type: 'state',
       roomKey: this.get<string>('room', 'invitation'),
       roomName: this.get<string>('room', 'name'),
+      settings,
       at: now,
       devices: devices.map(
         ({ id, name, role, lastSeen, monitoring, level, lastNoise, sensitivity }) => ({
@@ -386,7 +393,7 @@ export class Room extends DurableObject<Env> {
         }),
       ),
       events: this.all<Alert>('event')
-        .filter((event) => now - event.at < EVENT_RETENTION_MS)
+        .filter((event) => now - event.at < settings.retentionMs)
         .sort((a, b) => b.at - a.at),
     };
   }
@@ -521,9 +528,11 @@ export class Room extends DurableObject<Env> {
     for (const socket of sockets)
       this.send(socket, JSON.stringify({ type: 'signal', source: source.id, payload }));
   }
-  private offlineAlertDelay() {
+  private settings(): RoomSettings {
+    const stored = roomSettings(this.get<Partial<RoomSettings>>('room', 'settings'));
     const configured = Number(this.env.OFFLINE_ALERT_MS);
-    return Number.isFinite(configured) && configured > 0 ? configured : OFFLINE_ALERT_MS;
+    if (Number.isFinite(configured) && configured > 0) stored.offlineAlertMs = configured;
+    return stored;
   }
   private async schedule() {
     const due = [
@@ -531,9 +540,9 @@ export class Room extends DurableObject<Env> {
         .filter(
           (device) => device.role === 'baby' && device.lastSeen > 0 && !device.offlineNotified,
         )
-        .map((device) => device.lastSeen + this.offlineAlertDelay() + 1),
+        .map((device) => device.lastSeen + this.settings().offlineAlertMs + 1),
       ...this.all<Delivery>('delivery').map((delivery) => delivery.nextAt),
-      ...this.all<Alert>('event').map((event) => event.at + EVENT_RETENTION_MS),
+      ...this.all<Alert>('event').map((event) => event.at + this.settings().retentionMs),
       ...this.ctx
         .getWebSockets()
         .map((socket) => socket.deserializeAttachment() as SocketSession)
@@ -559,7 +568,7 @@ export class Room extends DurableObject<Env> {
           device.role === 'baby' &&
           device.lastSeen > 0 &&
           !device.offlineNotified &&
-          now - device.lastSeen > this.offlineAlertDelay()
+          now - device.lastSeen > this.settings().offlineAlertMs
         ) {
           device.offlineNotified = true;
           device.monitoring = false;
@@ -568,8 +577,9 @@ export class Room extends DurableObject<Env> {
           this.alert(device, 'offline');
         }
       }
+      const retentionMs = this.settings().retentionMs;
       for (const event of this.all<Alert>('event'))
-        if (now - event.at >= EVENT_RETENTION_MS) this.remove('event', event.id);
+        if (now - event.at >= retentionMs) this.remove('event', event.id);
     });
     for (const socket of this.ctx.getWebSockets()) {
       const session = socket.deserializeAttachment() as SocketSession;

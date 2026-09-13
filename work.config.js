@@ -9,7 +9,8 @@ export default {
     },
     preview: {
       run: 'bun --bun vite preview --host 0.0.0.0 --port 4313',
-      autoStart: false,
+      autoStart: true,
+      restart: 'on-exit',
       portless: false,
     },
     https: {
@@ -17,9 +18,8 @@ export default {
       autoStart: false,
       portless: false,
     },
-    dev: { run: 'bun --bun vite --host 0.0.0.0 --port 4314', autoStart: false, portless: false },
     web: {
-      run: 'bun --bun vite preview --host 0.0.0.0 --port 4310',
+      run: 'bun --bun vite --host 0.0.0.0 --port 4310',
       autoStart: true,
       restart: 'on-exit',
       portless: false,

@@ -11,6 +11,8 @@ import { InvitationModal, PrivacyModal, RoomsPopover } from './AppModals';
 import { PrivacyIcon } from './icons';
 import { useIntl } from './intl/setup';
 import { LanguageSelect } from './LanguageSelect';
+import { Button } from './components/ui/button';
+import './App.css';
 
 type AppModal = '' | 'privacy';
 
@@ -201,14 +203,14 @@ export function App() {
               <div className="shell-actions">
                 {rooms.length > 0 && roomSwitcher}
                 {appMode && rooms.length === 0 && (
-                  <button
-                    type="button"
-                    className="quiet small"
+                  <Button
+                    variant="quiet"
+                    size="small"
                     data-testid="privacy-topbar"
                     onClick={() => setModal('privacy')}
                   >
                     {t('common.privacy')}
-                  </button>
+                  </Button>
                 )}
               </div>
             )}
@@ -218,7 +220,7 @@ export function App() {
         <Toaster
           theme="system"
           position="bottom-right"
-          offset={{ bottom: 96, right: 24 }}
+          offset={{ bottom: 24, right: 24 }}
           mobileOffset={{ bottom: session ? 104 : 16, left: 16, right: 16 }}
           closeButton
         />
@@ -228,7 +230,7 @@ export function App() {
               <button type="button" data-testid="privacy" onClick={() => setModal('privacy')}>
                 {t('common.privacy')}
               </button>
-              <LanguageSelect showLabel={false} />
+              <LanguageSelect showLabel={false} variant="quiet" />
             </div>
             <nav aria-label={t('nav.projectLinks')}>
               <a href="https://github.com/carlassmann/kueki" target="_blank" rel="noreferrer">

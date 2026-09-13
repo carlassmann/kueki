@@ -1,6 +1,9 @@
 import { ConnectionIcon, SoundIcon } from '../../../icons';
 import { useRoom } from '../room-context';
 import { T, useIntl, useLocale } from '../../../intl/setup';
+import { Button } from '../../../components/ui/button';
+import './activity-screen.css';
+import { Caption } from '../../../components/ui/text';
 
 export function ActivityScreen() {
   const t = useIntl();
@@ -11,16 +14,16 @@ export function ActivityScreen() {
     <section className="side-card activity">
       <div className="section-heading">
         <h3>{t('activity.title')}</h3>
-        <span className="caption">{t('activity.last24h')}</span>
+        <Caption as="span">{t('activity.last24h')}</Caption>
         {!isBaby && events.length > 0 && (
-          <button
-            type="button"
-            className="quiet small"
+          <Button
+            variant="quiet"
+            size="small"
             data-testid="clear-activity"
             onClick={() => void clearEvents()}
           >
             {t('activity.clear')}
-          </button>
+          </Button>
         )}
       </div>
       {events.length ? (

@@ -10,7 +10,7 @@ test('WebKit mobile setup, microphone start, saved role, and narrow layout', asy
     locale: 'en-US',
   });
   const page = await context.newPage();
-  await page.goto('http://localhost:4310/app');
+  await page.goto('http://localhost:4313/app');
   await expect(page.getByTestId('create-room')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(

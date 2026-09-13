@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { errorMessage } from '../../../format';
 import { meterFraction } from '../../../noise';
 import { useIntl } from '../../../intl/setup';
+import { Button } from '../../../components/ui/button';
+import './room-components.css';
+import { Notice } from '../../../components/ui/notice';
 
 const METER_BAR_COUNT = 36;
 
@@ -75,24 +78,21 @@ export function RenameField({
       </label>
       <div className="rename-actions">
         {onCancel && (
-          <button type="button" className="quiet small" onClick={onCancel}>
+          <Button variant="quiet" size="small" onClick={onCancel}>
             {t('common.cancel')}
-          </button>
+          </Button>
         )}
-        <button
+        <Button
+          variant="secondary"
+          size="small"
           type="submit"
-          className="secondary small"
           data-testid={`${testId}-save`}
           disabled={busy || !name.trim() || name.trim() === value}
         >
           {t('common.save')}
-        </button>
+        </Button>
       </div>
-      {error && (
-        <p role="alert" className="notice">
-          {error}
-        </p>
-      )}
+      {error && <Notice role="alert">{error}</Notice>}
     </form>
   );
 }

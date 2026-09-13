@@ -1,0 +1,71 @@
+.meter-wrap {
+  margin: 30px 0 20px;
+}
+
+.meter-wrap > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 9px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.meter {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  overflow: hidden;
+}
+
+.meter span {
+  width: 6px;
+  min-width: 0;
+  max-width: 9px;
+  flex: 1;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+  transition:
+    background-color 220ms var(--ease-out),
+    box-shadow 220ms var(--ease-out);
+}
+
+.meter .lit {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mint) 78%, white), var(--mint));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--mint) 45%, transparent);
+}
+
+.rename-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+
+.rename-field label {
+  min-width: 140px;
+  flex: 1;
+  margin: 0;
+}
+
+.rename-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.rename-actions [data-ui='button'] {
+  min-height: 52px;
+}
+
+.rename-field [data-ui='notice'] {
+  width: 100%;
+  margin: 4px 0 0;
+}
+
+@media (max-width: 680px) {
+  .meter {
+    gap: 4px;
+  }
+}

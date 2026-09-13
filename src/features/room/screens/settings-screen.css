@@ -1,0 +1,232 @@
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  color: #8c6d1f;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--butter-soft) 70%, white),
+    var(--butter-soft)
+  );
+  box-shadow: 0 0 0 var(--hairline) rgb(148 117 38 / 12%) inset;
+}
+
+.card-icon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: var(--radius-sm);
+}
+
+.settings {
+  display: grid;
+  gap: 26px;
+  padding-top: 6px;
+}
+
+.settings-group-title {
+  margin: 0 0 8px 18px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.settings-group-footer {
+  margin: 8px 18px 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.settings-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow:
+    0 0 0 var(--hairline) var(--line),
+    var(--shadow-1);
+}
+
+.settings-list > li {
+  position: relative;
+}
+
+.settings-list > li + li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 0;
+  border-top: var(--hairline) solid var(--line-strong);
+}
+
+.settings-list > li:first-child,
+.settings-list > li:first-child > .settings-link {
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+
+.settings-list > li:last-child,
+.settings-list > li:last-child > .settings-link {
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+
+.settings-row {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+}
+
+.settings-row-label {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.settings-row-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.settings-row-text strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.settings-row-text > span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.settings-row-check {
+  color: var(--mint);
+}
+
+.settings-row-choice [data-ui='select'] {
+  flex: none;
+}
+
+.settings-row-stack {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 14px;
+  padding-block: 16px;
+}
+
+.settings-row-stack p {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.settings-row-field {
+  padding-block: 14px 16px;
+}
+
+.settings-row-field .rename-field {
+  flex: 1;
+}
+
+.device-row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.settings-link {
+  position: relative;
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px 10px 18px;
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-align: left;
+}
+
+.settings-link > span:not(.card-icon) {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-link > svg:last-child {
+  flex: none;
+  color: var(--muted);
+}
+
+.settings-link:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .settings-link:hover {
+    background: color-mix(in srgb, var(--ink) 4%, transparent);
+  }
+}
+
+.check-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.check-list li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.check-list svg {
+  flex: none;
+  color: var(--mint);
+}
+
+@media (prefers-color-scheme: dark) {
+  .card-icon {
+    color: #e6cf92;
+  }
+}
+
+@media (max-width: 680px) {
+  .settings-row-choice {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .settings-group-title,
+  .settings-group-footer {
+    margin-inline: 16px;
+  }
+  .settings-row,
+  .settings-link {
+    padding-inline: 16px;
+  }
+  .settings-link {
+    padding-right: 12px;
+  }
+  .settings-list > li + li::before {
+    left: 16px;
+  }
+}

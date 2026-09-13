@@ -7,11 +7,17 @@ import { BabyAudio } from './lib/baby-audio';
 import { enableNotifications, usePwa } from '../../pwa';
 import { useScreenWake } from '../../useScreenWake';
 import { errorMessage } from '../../format';
-import type { Alert, PublicDevice, Session } from '../../protocol';
+import {
+  DEFAULT_ROOM_SETTINGS,
+  type Alert,
+  type PublicDevice,
+  type RoomSettings,
+  type Session,
+} from '../../protocol';
 import { RoomHeader } from './parts/room-header';
 import {
   ConnectionNotice,
-  ConnectionSummary,
+  ConnectionIndicator,
   ErrorNotice,
   EventNotice,
 } from './parts/room-notices';
@@ -20,6 +26,8 @@ import { RoomProvider } from './room-context';
 import { SENSITIVITY_THRESHOLDS } from '../../noise';
 import { recentEvent } from './lib/recent-event';
 import { useIntl } from '../../intl/setup';
+import './room.css';
+import { Notice } from '../../components/ui/notice';
 
 const AUDIO_ACTIVE_STATUSES: AudioStatus[] = ['connecting', 'live', 'paused'];
 const RECENT_EVENT_MS = 60_000;
@@ -41,6 +49,7 @@ export function Room({
   const t = useIntl();
   const [devices, setDevices] = useState<PublicDevice[]>([]);
   const [events, setEvents] = useState<Alert[]>([]);
+  const [settings, setSettings] = useState<RoomSettings>(DEFAULT_ROOM_SETTINGS);
   const [connection, setConnection] = useState<ConnectionStatus>('Connecting');
   const [active, setActive] = useState(false);
   const [level, setLevel] = useState(0);
@@ -114,6 +123,13 @@ export function Room({
       delete document.documentElement.dataset.dim;
     };
   }, [dim]);
+  async function changeRoomSettings(next: Partial<RoomSettings>) {
+    try {
+      await request('room-settings', { ...session, settings: { ...settings, ...next } });
+    } catch (error) {
+      setError(errorMessage(error));
+    }
+  }
   async function changeSensitivity(target: string, value: number) {
     try {
       await request('sensitivity', { ...session, target, sensitivity: value });
@@ -182,6 +198,8 @@ export function Room({
 
           setDevices(data.devices);
           setEvents(data.events);
+          setSettings(data.settings);
+          baby.alertTiming = data.settings;
           const own = data.devices.find((device) => device.id === session.deviceId);
           if (own) {
             updateSession({
@@ -405,25 +423,26 @@ export function Room({
         roomName={session.roomName}
         roomSwitcher={roomSwitcher}
         onInvite={() => setModal('invite')}
+        indicator={
+          <ConnectionIndicator
+            connected={connected}
+            connection={connection}
+            parentAwake={parentAwake}
+          />
+        }
       />
       <div className="room-scroll">
         <div className="room-content">
-          <ConnectionSummary
-            connected={connected}
-            connection={connection}
-            deviceName={session.name}
-            parentAwake={parentAwake}
-          />
           <div className="room-alerts">
             {wakeWaiting && (
-              <p className="notice" data-testid="wake-lock-notice" data-state="tap">
+              <Notice data-testid="wake-lock-notice" data-state="tap">
                 {t('room.screenWakeTap')}
-              </p>
+              </Notice>
             )}
             {!isBaby && connected && !parentAwake && !wakeWaiting && (
-              <p className="notice" data-testid="wake-lock-notice" data-state="unavailable">
+              <Notice data-testid="wake-lock-notice" data-state="unavailable">
                 {t('room.screenWakeUnavailable')}
-              </p>
+              </Notice>
             )}
             {!connected && <ConnectionNotice connection={connection} />}
             {error && <ErrorNotice error={error} onDismiss={() => setError('')} />}
@@ -455,6 +474,8 @@ export function Room({
               pushTestMessage: pushTest,
               sensitivity,
               session,
+              settings,
+              changeRoomSettings,
               changeSensitivity,
               clearEvents,
               enableNotifications: notify,
@@ -474,7 +495,7 @@ export function Room({
               <Outlet />
             </div>
           </RoomProvider>
-          {pwa.error && <p className="notice">{pwa.error}</p>}
+          {pwa.error && <Notice>{pwa.error}</Notice>}
         </div>
       </div>
       {modal === 'invite' && (

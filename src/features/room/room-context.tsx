@@ -1,5 +1,5 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import type { Alert, PublicDevice, Session } from '../../protocol';
+import type { Alert, PublicDevice, RoomSettings, Session } from '../../protocol';
 import type { AudioStatus } from './lib/audio-calls';
 
 export type RoomModel = {
@@ -22,6 +22,8 @@ export type RoomModel = {
   pushTestMessage: string;
   sensitivity: number;
   session: Session;
+  settings: RoomSettings;
+  changeRoomSettings: (settings: Partial<RoomSettings>) => Promise<void>;
   changeSensitivity: (deviceId: string, sensitivity: number) => Promise<void>;
   clearEvents: () => Promise<void>;
   enableNotifications: () => Promise<void>;

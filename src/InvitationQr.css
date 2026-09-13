@@ -1,0 +1,12 @@
+.invitation-qr {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.invitation-qr img {
+  width: 224px;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}

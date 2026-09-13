@@ -1,0 +1,11 @@
+[data-ui='caption'] {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+[data-ui='code'] {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-variant-numeric: slashed-zero;
+  font-variant-ligatures: none;
+}

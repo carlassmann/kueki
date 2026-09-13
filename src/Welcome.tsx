@@ -1,21 +1,16 @@
 import { useCallback, useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import {
-  AlertIcon,
-  BabyIcon,
-  BackIcon,
-  DeviceIcon,
-  ForwardIcon,
-  InviteLinkIcon,
-  MicrophoneIcon,
-  ParentIcon,
-} from './icons';
+import { BabyIcon, BackIcon, ForwardIcon, InviteLinkIcon, ParentIcon } from './icons';
 import { InvitationScanner } from './InvitationScanner';
 import { KuekiMascot } from './KuekiMascot';
 import { request } from './connection';
 import { errorMessage } from './format';
 import { T, useIntl } from './intl/setup';
 import type { Role, Session } from './protocol';
+import { Button } from './components/ui/button';
+import './Welcome.css';
+import { Notice } from './components/ui/notice';
+import { codeLook } from './components/ui/text';
 export function Welcome({
   onJoin,
   appMode = false,
@@ -95,65 +90,45 @@ export function Welcome({
       <section className="welcome-content">
         {!mode ? (
           <>
-            <h2>
-              {appMode ? (
-                t('welcome.setupTitle')
-              ) : (
-                <T k="welcome.title" components={{ br: () => <br /> }} />
-              )}
-            </h2>
+            <h2>{appMode ? t('welcome.setupTitle') : t('welcome.title')}</h2>
             <p>{t('welcome.intro')}</p>
             <div className="welcome-actions">
-              <button
-                type="button"
-                className="primary"
+              <Button
+                variant="primary"
                 data-testid="create-room"
                 onClick={() => void navigate({ to: '/app/create' })}
               >
                 {t('welcome.createRoom')} <ForwardIcon size={18} />
-              </button>
-              <button
-                type="button"
-                className="secondary"
+              </Button>
+              <Button
+                variant="secondary"
                 data-testid="join-room"
                 onClick={() => void navigate({ to: '/app/join' })}
               >
                 {t('welcome.joinRoom')} <InviteLinkIcon size={18} />
-              </button>
+              </Button>
             </div>
             {!appMode && (
-              <div className="steps">
-                <span>
-                  <span className="step-icon">
-                    <DeviceIcon size={18} />
-                  </span>
-                  {t('welcome.stepDevices')}
-                </span>
-                <span>
-                  <span className="step-icon">
-                    <MicrophoneIcon size={18} />
-                  </span>
-                  {t('welcome.stepAudio')}
-                </span>
-                <span>
-                  <span className="step-icon">
-                    <AlertIcon size={18} />
-                  </span>
-                  {t('welcome.stepAlerts')}
-                </span>
-              </div>
+              <section className="steps">
+                <h3>{t('welcome.stepsTitle')}</h3>
+                <ol>
+                  <li>{t('welcome.stepCreate')}</li>
+                  <li>{t('welcome.stepInvite')}</li>
+                  <li>{t('welcome.stepListen')}</li>
+                </ol>
+              </section>
             )}
           </>
         ) : (
           <form onSubmit={submit} className="setup">
-            <button
-              type="button"
-              className="back quiet"
+            <Button
+              variant="quiet"
+              className="back"
               data-testid="back"
               onClick={() => void navigate({ to: '/app', hash: '', search: {} })}
             >
               <BackIcon size={16} /> {t('welcome.back')}
-            </button>
+            </Button>
             <h2>{mode === 'join' ? t('welcome.joinRoom') : t('welcome.createRoom')}</h2>
             <p>{mode === 'join' ? t('welcome.joinIntro') : t('welcome.createIntro')}</p>
             {mode === 'join' ? (
@@ -163,7 +138,7 @@ export function Welcome({
                   <input
                     required
                     data-testid="invitation-code"
-                    className="invitation-code"
+                    {...codeLook}
                     value={roomKey}
                     onChange={(e) => setRoomKey(e.target.value)}
                     placeholder={t('welcome.invitationPlaceholder')}
@@ -172,14 +147,14 @@ export function Welcome({
                     spellCheck={false}
                   />
                 </label>
-                <button
-                  type="button"
-                  className="secondary full"
+                <Button
+                  variant="secondary"
+                  full
                   data-testid="scan-qr"
                   onClick={() => setScanning(true)}
                 >
                   {t('welcome.scanQr')}
-                </button>
+                </Button>
                 {scanning && (
                   <InvitationScanner onScan={scanned} close={() => setScanning(false)} />
                 )}
@@ -234,13 +209,14 @@ export function Welcome({
               />
             </label>
             {error && (
-              <p role="alert" className="notice" data-testid="form-error">
+              <Notice role="alert" data-testid="form-error">
                 {error}
-              </p>
+              </Notice>
             )}
-            <button
+            <Button
+              variant="primary"
+              full
               type="submit"
-              className="primary full"
               data-testid="submit-room"
               disabled={busy || (mode === 'join' && !roomKey.trim())}
             >
@@ -250,7 +226,7 @@ export function Welcome({
                   ? t('welcome.submitJoin')
                   : t('welcome.submitCreate')}
               <ForwardIcon size={18} />
-            </button>
+            </Button>
           </form>
         )}
       </section>

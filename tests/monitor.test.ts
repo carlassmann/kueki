@@ -45,3 +45,19 @@ test('dismissing an alert clears the current backlog but not new alerts', () => 
       ?.id,
   ).toBe('next');
 });
+
+test('a sustained-sound setting waits for the sound to last that long', () => {
+  const detector = new NoiseDetector(0.1, 20000, 5000);
+  expect(detector.sample(0.2, 0)).toBe(false);
+  expect(detector.sample(0.2, 4999)).toBe(false);
+  expect(detector.sample(0.2, 5000)).toBe(true);
+});
+
+test('a sound that stops before the sustain window starts the wait over', () => {
+  const detector = new NoiseDetector(0.1, 20000, 5000);
+  expect(detector.sample(0.2, 0)).toBe(false);
+  expect(detector.sample(0.05, 3000)).toBe(false);
+  expect(detector.sample(0.2, 4000)).toBe(false);
+  expect(detector.sample(0.2, 8999)).toBe(false);
+  expect(detector.sample(0.2, 9000)).toBe(true);
+});

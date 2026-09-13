@@ -1,0 +1,10 @@
+.language-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.language-select [data-ui='caption'] {
+  margin: 0;
+}

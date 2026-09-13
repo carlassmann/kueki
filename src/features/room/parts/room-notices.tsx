@@ -3,6 +3,11 @@ import type { ConnectionStatus } from '../../../connection';
 import type { Alert } from '../../../protocol';
 import { useIntl } from '../../../intl/setup';
 import type { MessageKey } from '../../../intl/messages';
+import { Button } from '../../../components/ui/button';
+import './room-notices.css';
+import { Notice } from '../../../components/ui/notice';
+import { Status } from '../../../components/ui/status';
+import { Tooltip } from '../../../components/ui/tooltip';
 
 const CONNECTION_KEYS = {
   Connecting: 'status.connecting',
@@ -22,34 +27,31 @@ const CONNECTION_CODES = {
   'Open in another tab': 'openElsewhere',
 } as const satisfies Record<ConnectionStatus, string>;
 
-export function ConnectionSummary({
+export function ConnectionIndicator({
   connected,
   connection,
-  deviceName,
   parentAwake,
 }: {
   connected: boolean;
   connection: ConnectionStatus;
-  deviceName: string;
   parentAwake: boolean;
 }) {
   const t = useIntl();
   return (
-    <div className="connection-summary">
-      <span
-        className={`status ${connected ? 'green' : 'amber'}`}
-        data-testid="connection-status"
-        data-status={CONNECTION_CODES[connection]}
-      >
-        <i />
-        {t(CONNECTION_KEYS[connection])}
-      </span>
-      <span>{deviceName}</span>
+    <div className="connection-indicator">
+      <Tooltip label={t(CONNECTION_KEYS[connection])}>
+        <Status
+          tone={connected ? 'good' : 'warning'}
+          data-testid="connection-status"
+          data-status={CONNECTION_CODES[connection]}
+        />
+      </Tooltip>
       {parentAwake && (
-        <span className="wake-status" data-testid="wake-status">
-          <BrightIcon size={16} />
-          {t('room.screenAwake')}
-        </span>
+        <Tooltip label={t('room.screenAwake')}>
+          <span className="wake-status" data-testid="wake-status">
+            <BrightIcon size={16} />
+          </span>
+        </Tooltip>
       )}
     </div>
   );
@@ -65,33 +67,27 @@ export function ConnectionNotice({ connection }: { connection: ConnectionStatus 
         : t('notice.connectionUnavailable');
 
   return (
-    <p
-      role="alert"
-      className="notice"
-      data-testid="connection-notice"
-      data-status={CONNECTION_CODES[connection]}
-    >
+    <Notice role="alert" data-testid="connection-notice" data-status={CONNECTION_CODES[connection]}>
       <ConnectionIcon size={20} />
       {message}
-    </p>
+    </Notice>
   );
 }
 
 export function ErrorNotice({ error, onDismiss }: { error: string; onDismiss: () => void }) {
   const t = useIntl();
   return (
-    <p role="alert" className="notice" data-testid="error-notice">
+    <Notice role="alert" data-testid="error-notice">
       <span>{error}</span>
-      <button
-        type="button"
-        className="icon-button"
+      <Button
+        variant="icon"
         data-testid="dismiss-error"
         aria-label={t('common.dismissError')}
         onClick={onDismiss}
       >
         <CloseIcon size={17} />
-      </button>
-    </p>
+      </Button>
+    </Notice>
   );
 }
 
@@ -111,8 +107,9 @@ export function EventNotice({ event, onDismiss }: { event: Alert; onDismiss: () 
         : t('event.paused.detail', { name: event.name });
 
   return (
-    <div
-      className={`notice ${event.kind === 'noise' ? 'sound-notice' : ''}`}
+    <Notice
+      as="div"
+      tone={event.kind === 'noise' ? 'sound' : 'alert'}
       role="alert"
       data-testid="event-notice"
       data-kind={event.kind}
@@ -123,15 +120,14 @@ export function EventNotice({ event, onDismiss }: { event: Alert; onDismiss: () 
         <br />
         {detail}
       </span>
-      <button
-        type="button"
-        className="icon-button"
+      <Button
+        variant="icon"
         data-testid="dismiss-notice"
         aria-label={t('notice.dismiss')}
         onClick={onDismiss}
       >
         <CloseIcon size={17} />
-      </button>
-    </div>
+      </Button>
+    </Notice>
   );
 }

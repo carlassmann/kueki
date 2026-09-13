@@ -6,7 +6,9 @@ import { join, resolve } from 'node:path';
 import { createECDH, randomBytes } from 'node:crypto';
 import { Miniflare, convertV4MiniflareOptions, Response as WorkerResponse } from 'miniflare';
 import webpush from 'web-push';
-import type { Session } from '../src/protocol.ts';
+import type { ServerMessage, Session } from '../src/protocol.ts';
+
+type RoomState = Extract<ServerMessage, { type: 'state' }>;
 
 async function eventually(check: () => Promise<boolean>, timeout = 18000) {
   const deadline = Date.now() + timeout;
@@ -85,6 +87,13 @@ test(
         method: 'POST',
         body: JSON.stringify(body),
       });
+    const state = async (session: Session) =>
+      (await (await post('state', session)).json()) as RoomState;
+    const deviceIn = (snapshot: RoomState, deviceId: string) => {
+      const device = snapshot.devices.find((candidate) => candidate.id === deviceId);
+      assert.ok(device, 'the device is part of the room state');
+      return device;
+    };
     const register = async (body: object) => {
       const response = await post('register', body);
       assert.equal(response.status, 200);
@@ -98,7 +107,7 @@ test(
       );
       assert.equal(response.status, 101);
       const socket = response.webSocket!;
-      const messages: any[] = [];
+      const messages: ServerMessage[] = [];
       socket.accept();
       sockets.push(socket);
       socket.addEventListener('message', (event) => messages.push(JSON.parse(String(event.data))));
@@ -147,6 +156,27 @@ test(
       assert.equal(
         (await post('sensitivity', { ...parent, target: baby.deviceId, sensitivity: 9 })).status,
         400,
+      );
+
+      assert.equal(
+        (await post('room-settings', { ...parent, settings: { cooldownMs: 60_000 } })).status,
+        200,
+      );
+      const tuned = await state(parent);
+      assert.equal(tuned.settings.cooldownMs, 60_000);
+      assert.equal(tuned.settings.retentionMs, 86_400_000);
+      assert.equal(
+        (await post('room-settings', { ...parent, settings: { cooldownMs: 7 } })).status,
+        200,
+      );
+      assert.equal(
+        (await state(parent)).settings.cooldownMs,
+        20_000,
+        'an unsupported choice falls back to the default',
+      );
+      assert.equal(
+        (await post('room-settings', { ...baby, settings: { cooldownMs: 10_000 } })).status,
+        403,
       );
 
       assert.equal(
@@ -202,8 +232,10 @@ test(
       const parentClient = await connect(parent);
       babyClient.send({ type: 'heartbeat', monitoring: true, level: 0.2 });
       await eventually(async () =>
-        parentClient.messages.some((message) =>
-          message.devices?.some((device: any) => device.id === baby.deviceId && device.monitoring),
+        parentClient.messages.some(
+          (message) =>
+            message.type === 'state' &&
+            message.devices.some((device) => device.id === baby.deviceId && device.monitoring),
         ),
       );
       parentClient.send({
@@ -242,10 +274,8 @@ test(
         (await post('mute', { ...second, target: baby.deviceId, muted: true })).status,
         200,
       );
-      const muted = (await (await post('state', second)).json()) as any;
-      assert.deepEqual(muted.devices.find((device: any) => device.id === baby.deviceId).mutedBy, [
-        second.deviceId,
-      ]);
+      const muted = await state(second);
+      assert.deepEqual(deviceIn(muted, baby.deviceId).mutedBy, [second.deviceId]);
       babyClient.send({ type: 'noise' });
       babyClient.send({ type: 'noise' });
       await eventually(async () => attempts.get('/retry') === 1);
@@ -254,8 +284,8 @@ test(
         (await post('mute', { ...second, target: baby.deviceId, muted: false })).status,
         200,
       );
-      const initial = (await (await post('state', parent)).json()) as any;
-      assert.equal(initial.events.filter((event: any) => event.kind === 'noise').length, 1);
+      const initial = await state(parent);
+      assert.equal(initial.events.filter((event) => event.kind === 'noise').length, 1);
       assert.equal(JSON.stringify(initial).includes('tokenHash'), false);
       assert.equal(JSON.stringify(initial).includes('subscription'), false);
       for (const socket of sockets.splice(0)) {
@@ -266,15 +296,12 @@ test(
       await runtime.dispose();
       runtime = new Miniflare(options);
       await runtime.ready;
-      const resumed = (await (await post('state', parent)).json()) as any;
+      const resumed = await state(parent);
       assert.equal(resumed.devices.length, 9);
-      assert.equal(
-        resumed.devices.find((device: any) => device.id === baby.deviceId).sensitivity,
-        1,
-      );
+      assert.equal(deviceIn(resumed, baby.deviceId).sensitivity, 1);
       await eventually(async () => {
-        const result = (await (await post('state', parent)).json()) as any;
-        return result.events.some((event: any) => event.kind === 'offline');
+        const result = await state(parent);
+        return result.events.some((event) => event.kind === 'offline');
       });
       await eventually(async () => (attempts.get('/retry') || 0) >= 3);
       assert.equal(attempts.get('/gone'), 1);
@@ -285,17 +312,14 @@ test(
         async () =>
           (await storage.exec("SELECT id FROM records WHERE kind = 'delivery'")).length === 0,
       );
-      const final = (await (await post('state', parent)).json()) as any;
-      assert.equal(final.events.filter((event: any) => event.kind === 'offline').length, 1);
-      assert.equal(
-        final.devices.find((device: any) => device.id === baby.deviceId).monitoring,
-        false,
-      );
+      const final = await state(parent);
+      assert.equal(final.events.filter((event) => event.kind === 'offline').length, 1);
+      assert.equal(deviceIn(final, baby.deviceId).monitoring, false);
       const recovered = await connect(baby);
       recovered.send({ type: 'heartbeat', monitoring: true, level: 0.1 });
       await eventually(async () => {
-        const result = (await (await post('state', parent)).json()) as any;
-        return result.devices.find((device: any) => device.id === baby.deviceId).monitoring;
+        const result = await state(parent);
+        return deviceIn(result, baby.deviceId).monitoring;
       });
       await runtime.unsafeEvictDurableObject('kueki-test', 'Room', {
         id: baby.roomId,
@@ -303,12 +327,12 @@ test(
       });
       recovered.send({ type: 'heartbeat', monitoring: false, level: 0 });
       await eventually(async () => {
-        const result = (await (await post('state', parent)).json()) as any;
-        return result.events.some((event: any) => event.kind === 'paused');
+        const result = await state(parent);
+        return result.events.some((event) => event.kind === 'paused');
       });
       assert.equal((await post('clear-events', baby)).status, 403);
       assert.equal((await post('clear-events', parent)).status, 200);
-      assert.equal(((await (await post('state', second)).json()) as any).events.length, 0);
+      assert.equal((await state(second)).events.length, 0);
       const guestConnection = await connect(second);
       let guestClosed = false;
       guestConnection.socket.addEventListener('close', () => {
@@ -390,9 +414,9 @@ test(
           .status,
         200,
       );
-      const renamed = (await (await post('state', baby)).json()) as any;
+      const renamed = await state(baby);
       assert.equal(renamed.roomName, 'Evening room');
-      assert.equal(renamed.devices.find((d: any) => d.id === baby.deviceId).name, 'Cot phone');
+      assert.equal(deviceIn(renamed, baby.deviceId).name, 'Cot phone');
       const activeParent = await connect(parent);
       await eventually(async () => activeParent.messages.some((m) => m.type === 'ready'));
       const subscription = { endpoint: 'https://fcm.googleapis.com/inactive', keys };
@@ -405,9 +429,9 @@ test(
       await eventually(async () => reactivated.messages.some((m) => m.type === 'ready'));
       assert.equal((await post('subscription', { ...parent, subscription })).status, 200);
       assert.equal((await post('deactivate', baby)).status, 200);
-      const inactive = (await (await post('state', parent)).json()) as any;
-      assert.equal(inactive.devices.find((d: any) => d.id === baby.deviceId).monitoring, false);
-      assert.equal(inactive.devices.find((d: any) => d.id === baby.deviceId).online, false);
+      const inactive = await state(parent);
+      assert.equal(deviceIn(inactive, baby.deviceId).monitoring, false);
+      assert.equal(deviceIn(inactive, baby.deviceId).online, false);
       assert.equal((await post('leave', parent)).status, 200);
       assert.equal((await post('state', parent)).status, 401);
     } finally {

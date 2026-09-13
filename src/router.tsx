@@ -3,6 +3,7 @@ import { ActivityScreen, MonitorScreen, SettingsScreen } from './features/room';
 import { App, AppScreen, LandingScreen } from './App';
 import { readSession } from './sessions';
 import { useIntl } from './intl/setup';
+import { buttonLook } from './components/ui/button';
 
 function NotFoundScreen() {
   const t = useIntl();
@@ -10,7 +11,7 @@ function NotFoundScreen() {
     <main className="app-onboarding">
       <section>
         <h1>{t('notFound.title')}</h1>
-        <Link to="/app" className="secondary">
+        <Link to="/app" {...buttonLook({ variant: 'secondary' })}>
           {t('notFound.action')}
         </Link>
       </section>

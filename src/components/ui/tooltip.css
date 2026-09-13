@@ -1,0 +1,21 @@
+[data-ui='tooltip'] {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: var(--surface-raised);
+  box-shadow:
+    0 0 0 var(--hairline) var(--line),
+    var(--shadow-2);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  transition:
+    opacity 140ms var(--ease-out),
+    transform 140ms var(--ease-out);
+}
+
+[data-ui='tooltip'][data-starting-style],
+[data-ui='tooltip'][data-ending-style] {
+  opacity: 0;
+  transform: translateY(-3px);
+}

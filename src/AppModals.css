@@ -1,0 +1,158 @@
+.room-switcher {
+  min-width: 0;
+  justify-content: flex-start;
+  gap: 6px;
+  margin-left: -10px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+}
+
+.room-switcher:active:not(:disabled) {
+  transform: scale(0.965);
+  transition-duration: 90ms;
+}
+
+.room-switcher > svg {
+  color: var(--muted);
+  transition: transform 260ms var(--spring);
+}
+
+.room-switcher span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room-switcher[data-popup-open] {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.room-switcher[data-popup-open] > svg {
+  transform: rotate(180deg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .room-switcher:hover {
+    background: color-mix(in srgb, var(--ink) 5%, transparent);
+  }
+}
+
+.rooms-popover {
+  z-index: 20;
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(520px, calc(100dvh - 32px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+  border-radius: var(--radius-xl);
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--surface-raised), var(--surface));
+  box-shadow:
+    0 0 0 var(--hairline) var(--line),
+    var(--shadow-3);
+  transform-origin: var(--transform-origin);
+}
+
+.rooms-popover[data-open] {
+  animation: rooms-popover-in 260ms var(--spring);
+}
+
+.rooms-popover[data-closed] {
+  animation: rooms-popover-out 120ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.rooms-popover h2 {
+  font-size: 24px;
+}
+
+.rooms-popover > p {
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.rooms-popover .saved-rooms {
+  display: grid;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  margin: 4px -10px;
+  padding: 10px;
+  scroll-padding: 10px;
+}
+
+.rooms-popover .saved-room [data-variant='secondary'] {
+  min-width: 0;
+  min-height: 56px;
+  padding: 10px 12px;
+}
+
+.rooms-popover .saved-room [data-variant='secondary'] > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rooms-popover-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: var(--hairline) solid var(--line);
+}
+
+.rooms-popover > [data-ui='notice'] {
+  margin: 12px 0 0;
+}
+
+.saved-room {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.saved-room [data-variant='secondary'] {
+  justify-content: space-between;
+  text-align: left;
+}
+
+.saved-room small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rooms-popover[data-open] {
+    animation: rooms-popover-fade 120ms ease-out;
+  }
+  .rooms-popover[data-closed] {
+    animation: rooms-popover-fade 100ms ease-out reverse;
+  }
+}
+
+@keyframes rooms-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+@keyframes rooms-popover-out {
+  to {
+    opacity: 0;
+    transform: translateY(-2px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes rooms-popover-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}

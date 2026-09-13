@@ -9,12 +9,16 @@ import {
 } from '../../../icons';
 import { useState, type ReactNode } from 'react';
 import { request } from '../../../connection';
-import type { PublicDevice } from '../../../protocol';
+import { ROOM_SETTING_CHOICES, type PublicDevice } from '../../../protocol';
 import { RenameField } from '../parts/room-components';
 import { RemoveDeviceConfirmation } from '../parts/room-modals';
 import { useRoom } from '../room-context';
 import { useIntl } from '../../../intl/setup';
+import { durationText } from '../../../format';
 import { LanguageSelect } from '../../../LanguageSelect';
+import { Button } from '../../../components/ui/button';
+import { Select } from '../../../components/ui/select';
+import './settings-screen.css';
 
 export function SettingsScreen() {
   const t = useIntl();
@@ -34,6 +38,7 @@ export function SettingsScreen() {
           </li>
         </SettingsGroup>
       )}
+      <AlertSettings room={room} />
       <RoomDevices room={room} />
       {room.isBaby ? <BabySetup /> : <NotificationSetup room={room} />}
       <SettingsGroup title={t('language.title')}>
@@ -52,6 +57,47 @@ export function SettingsScreen() {
         {room.preferences}
       </SettingsGroup>
     </div>
+  );
+}
+
+const ALERT_SETTINGS = [
+  ['alertAfterMs', 'alerts.alertAfter', 'alerts.alertAfterHint'],
+  ['cooldownMs', 'alerts.cooldown', 'alerts.cooldownHint'],
+  ['offlineAlertMs', 'alerts.offlineAlert', 'alerts.offlineAlertHint'],
+  ['retentionMs', 'alerts.retention', 'alerts.retentionHint'],
+] as const;
+
+function AlertSettings({ room }: { room: ReturnType<typeof useRoom> }) {
+  const t = useIntl();
+
+  if (room.isBaby) return null;
+
+  return (
+    <SettingsGroup title={t('alerts.title')}>
+      {ALERT_SETTINGS.map(([key, label, hint]) => (
+        <li className="settings-row settings-row-choice" key={key}>
+          <div className="settings-row-text">
+            <strong>{t(label)}</strong>
+            <span>{t(hint)}</span>
+          </div>
+          <Select
+            data-testid={`alert-${key}`}
+            aria-label={t(label)}
+            value={room.settings[key]}
+            disabled={room.busy || !room.connected}
+            onChange={(event) =>
+              void room.changeRoomSettings({ [key]: Number(event.target.value) })
+            }
+          >
+            {ROOM_SETTING_CHOICES[key].map((choice) => (
+              <option value={choice} key={choice}>
+                {durationText(choice)}
+              </option>
+            ))}
+          </Select>
+        </li>
+      ))}
+    </SettingsGroup>
   );
 }
 
@@ -185,26 +231,27 @@ function DeviceRow({
         </span>
       </div>
       <div className="device-row-actions">
-        <button
-          type="button"
-          className="quiet small"
+        <Button
+          variant="quiet"
+          size="small"
           data-testid="device-rename"
           disabled={!room.connected}
           onClick={() => setRenaming(true)}
           aria-label={t('settings.renameLabel', { name: device.name })}
         >
           {t('settings.rename')}
-        </button>
-        <button
-          type="button"
-          className="quiet small danger"
+        </Button>
+        <Button
+          variant="quiet"
+          size="small"
+          tone="danger"
           data-testid="device-remove"
           disabled={room.busy || !room.connected}
           onClick={onRemove}
           aria-label={t('settings.removeLabel', { name: device.name })}
         >
           {t('settings.remove')}
-        </button>
+        </Button>
       </div>
     </li>
   );
@@ -258,15 +305,16 @@ function NotificationSetup({ room }: { room: ReturnType<typeof useRoom> }) {
       ) : (
         <li className="settings-row settings-row-stack">
           <p>{t('settings.notificationsBody')}</p>
-          <button
-            type="button"
-            className="primary full small"
+          <Button
+            variant="primary"
+            size="small"
+            full
             data-testid="enable-notifications"
             disabled={room.busy || !room.connected}
             onClick={() => void room.enableNotifications()}
           >
             <AlertIcon size={17} /> {t('settings.notificationsEnable')}
-          </button>
+          </Button>
         </li>
       )}
       {room.pushEnabled && (
