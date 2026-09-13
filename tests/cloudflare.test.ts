@@ -82,6 +82,13 @@ test(
     options.resourcePersistencePath = directory;
     options.unsafeInspectDurableObjects = true;
     let runtime = new Miniflare(options);
+    for (const origin of ['http://kueki.app', 'https://www.kueki.app']) {
+      const response = await runtime.dispatchFetch(`${origin}/app?source=share`, {
+        redirect: 'manual',
+      });
+      assert.equal(response.status, 308);
+      assert.equal(response.headers.get('location'), 'https://kueki.app/app?source=share');
+    }
     const post = (path: string, body: object) =>
       runtime.dispatchFetch('http://localhost/api/' + path, {
         method: 'POST',

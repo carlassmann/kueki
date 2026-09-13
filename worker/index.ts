@@ -3,10 +3,46 @@ import { serverLocale } from './intl';
 import type { Locale } from '../src/intl/locale';
 export { Room } from './room';
 
+const appRoutes = new Set(['/app', '/app/activity', '/app/settings', '/app/create', '/app/join']);
+
+function withIndexing(response: Response, status = response.status, contentType?: string) {
+  const headers = new Headers(response.headers);
+  headers.set('X-Robots-Tag', 'noindex');
+  if (contentType) headers.set('Content-Type', contentType);
+  return new Response(response.body, {
+    status,
+    statusText: status === 404 ? 'Not Found' : response.statusText,
+    headers,
+  });
+}
+
+async function siteResponse(request: Request, env: Env, url: URL) {
+  const path = url.pathname.replace(/\/+$/, '') || '/';
+  if (path === '/index.html') return Response.redirect(new URL('/', url), 308);
+  if (appRoutes.has(path)) {
+    const shell = new URL('/app-shell.txt', url);
+    const response = await env.ASSETS.fetch(new Request(shell, request));
+    return withIndexing(response, response.status, 'text/html; charset=utf-8');
+  }
+  if (path === '/app-shell.txt') return new Response('Not found', { status: 404 });
+
+  const response = await env.ASSETS.fetch(request);
+  if (path !== '/' && response.headers.get('content-type')?.includes('text/html')) {
+    return withIndexing(response, 404);
+  }
+  return response;
+}
+
 export default {
   async fetch(request: Request, env: Env) {
     const url = new URL(request.url);
-    if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
+    if (
+      url.hostname === 'www.kueki.app' ||
+      (url.hostname === 'kueki.app' && url.protocol !== 'https:')
+    ) {
+      return Response.redirect(`https://kueki.app${url.pathname}${url.search}`, 308);
+    }
+    if (!url.pathname.startsWith('/api/')) return siteResponse(request, env, url);
     let locale: Locale = 'en';
     try {
       const origin = request.headers.get('origin');
