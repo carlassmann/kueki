@@ -15,7 +15,7 @@ import type { PublicDevice } from '../../../protocol';
 import { AudioMeter } from '../parts/room-components';
 import { useRoom } from '../room-context';
 import { SENSITIVITY_THRESHOLDS } from '../../../noise';
-import { PipMascot } from '../../../PipMascot';
+import { KuekiMascot } from '../../../KuekiMascot';
 import { T, useIntl } from '../../../intl/setup';
 import type { MessageKey } from '../../../intl/messages';
 import type { AudioStatus } from '../lib/audio-calls';
@@ -48,7 +48,7 @@ function BabyMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
   return (
     <>
       <div className="monitor-hero">
-        <PipMascot
+        <KuekiMascot
           state={!room.active ? 'paused' : soundDetected ? 'sound' : 'quiet'}
           alt={t('monitor.mascotAlt')}
         />
@@ -144,7 +144,7 @@ function ParentMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
   if (room.babies.length === 0) {
     return (
       <div className="empty-nest" data-testid="empty-nest">
-        <PipMascot className="empty-nest-mascot" state="quiet" alt={t('parent.emptyAlt')} />
+        <KuekiMascot className="empty-nest-mascot" state="quiet" alt={t('parent.emptyAlt')} />
         <h2>{t('parent.emptyTitle')}</h2>
         <p>
           <T k="parent.emptyBody" components={{ br: () => <br /> }} />
@@ -286,7 +286,7 @@ function NestSummary({ room }: { room: ReturnType<typeof useRoom> }) {
 
   return (
     <section className="nest-summary" data-testid="nest-summary" data-state={state}>
-      <PipMascot state={state} alt={t('nest.alt')} />
+      <KuekiMascot state={state} alt={t('nest.alt')} />
       <h2>
         {state === 'sound'
           ? t('nest.titleSound')

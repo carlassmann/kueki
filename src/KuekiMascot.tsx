@@ -1,17 +1,17 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import './PipMascot.css';
+import './KuekiMascot.css';
 import { useIntl } from './intl/setup';
 
-export type PipMascotState = 'paused' | 'quiet' | 'sound';
+export type KuekiMascotState = 'paused' | 'quiet' | 'sound';
 
-export function PipMascot({
+export function KuekiMascot({
   alt,
   className = '',
   state,
 }: {
   alt: string;
   className?: string;
-  state: PipMascotState;
+  state: KuekiMascotState;
 }) {
   const t = useIntl();
   const id = useId();
@@ -41,7 +41,7 @@ export function PipMascot({
     <button
       type="button"
       className={`monitor-mascot ${className} ${state}`}
-      data-testid="pip-mascot"
+      data-testid="kueki-mascot"
       data-state={state}
       data-pose={awake ? 'awake' : 'sleeping'}
       aria-label={t('mascot.stir')}
@@ -56,7 +56,7 @@ export function PipMascot({
       }}
     >
       <svg
-        className="pip-character"
+        className="kueki-character"
         viewBox="0 0 360 280"
         role="img"
         aria-label={awake ? t('mascot.awake') : alt}
@@ -81,7 +81,7 @@ export function PipMascot({
           </radialGradient>
         </defs>
         <ellipse
-          className="pip-shadow"
+          className="kueki-shadow"
           cx="184"
           cy="254"
           rx="107"
@@ -93,8 +93,8 @@ export function PipMascot({
           d="M48 185 Q58 159 92 179 Q186 218 272 176 Q304 155 317 184 Q300 241 183 247 Q69 241 48 185Z"
           fill="#7c9fc4"
         />
-        <g className="pip-body-posture">
-          <g className="pip-breath">
+        <g className="kueki-body-posture">
+          <g className="kueki-breath">
             <path
               d="M150 120 Q196 94 241 115 Q288 136 286 186 Q283 225 218 230 L138 217 Q102 191 119 153Z"
               fill={`url(#${id}-down)`}
@@ -102,13 +102,13 @@ export function PipMascot({
             <ellipse cx="194" cy="192" rx="53" ry="31" fill="#fff0b4" opacity="0.5" />
             <path
               d="M237 129 l5 -3 M249 141 l5 -2 M252 154 l5 1 M234 147 l4 -2"
-              className="pip-feather-lines"
+              className="kueki-feather-lines"
             />
           </g>
         </g>
-        <g className="pip-head-posture">
-          <g className="pip-head-breathe">
-            <g className="pip-tuft">
+        <g className="kueki-head-posture">
+          <g className="kueki-head-breathe">
+            <g className="kueki-tuft">
               <path
                 d="M130 74 C112 62 109 47 117 47 Q128 46 137 64 C132 43 137 31 144 36 Q156 44 148 71Z"
                 fill={`url(#${id}-down)`}
@@ -128,9 +128,9 @@ export function PipMascot({
             />
             <ellipse cx="107" cy="158" rx="20" ry="15" fill={`url(#${id}-blush)`} />
             <ellipse cx="180" cy="152" rx="21" ry="16" fill={`url(#${id}-blush)`} />
-            <g className="pip-face">
+            <g className="kueki-face">
               <g
-                className="pip-eyes-closed"
+                className="kueki-eyes-closed"
                 fill="none"
                 stroke="#52667c"
                 strokeWidth="4.5"
@@ -139,21 +139,21 @@ export function PipMascot({
                 <path d="M106 133 Q114 142 124 133" />
                 <path d="M153 132 Q166 145 178 130" />
               </g>
-              <g className="pip-eyes-open">
-                <g className="pip-blink">
+              <g className="kueki-eyes-open">
+                <g className="kueki-blink">
                   <ellipse cx="116" cy="132" rx="6.5" ry="10" fill="#465b73" />
                   <ellipse cx="166" cy="131" rx="8" ry="12" fill="#465b73" />
-                  <g className="pip-eye-glints" fill="#fffdf2">
+                  <g className="kueki-eye-glints" fill="#fffdf2">
                     <ellipse cx="118" cy="128" rx="2.1" ry="2.8" />
                     <ellipse cx="169" cy="127" rx="2.7" ry="3.3" />
                     <circle cx="163" cy="135" r="1.4" opacity="0.65" />
                   </g>
                 </g>
               </g>
-              <g className="pip-beak" transform="translate(132 151)">
+              <g className="kueki-beak" transform="translate(132 151)">
                 <path d="M-10 0 Q1 -8 13 -2 Q14 3 2 10 Q-5 9 -10 0Z" fill="#e9a132" />
                 <path
-                  className="pip-beak-lower"
+                  className="kueki-beak-lower"
                   d="M-8 2 Q1 7 12 0 Q7 15 1 14 Q-5 12 -8 2Z"
                   fill="#d98a2b"
                 />
@@ -169,8 +169,8 @@ export function PipMascot({
             </g>
           </g>
         </g>
-        <g className="pip-wing-posture">
-          <g className="pip-wing-breathe">
+        <g className="kueki-wing-posture">
+          <g className="kueki-wing-breathe">
             <path
               d="M248 142 C258 151 244 172 238 178 C250 182 241 199 228 202 C232 212 214 222 192 220 C175 222 162 216 159 209 Q184 159 226 144 Q240 139 248 142Z"
               fill="#c69b4b"
@@ -183,7 +183,7 @@ export function PipMascot({
             />
             <path
               d="M176 192 Q201 158 235 149 M189 197 Q213 181 230 177"
-              className="pip-feather-lines"
+              className="kueki-feather-lines"
             />
           </g>
         </g>
@@ -208,18 +208,18 @@ export function PipMascot({
           opacity="0.3"
         />
         <g
-          className="pip-sleep-marks"
+          className="kueki-sleep-marks"
           fill="none"
           stroke="#7e98b5"
           strokeWidth="2.4"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <path className="pip-sleep-mark" d="M238 84 h9 l-9 10 h9" />
-          <path className="pip-sleep-mark" d="M259 60 h12 l-12 13 h12" />
+          <path className="kueki-sleep-mark" d="M238 84 h9 l-9 10 h9" />
+          <path className="kueki-sleep-mark" d="M259 60 h12 l-12 13 h12" />
         </g>
         <g
-          className="pip-sound-marks"
+          className="kueki-sound-marks"
           fill="none"
           stroke="currentColor"
           strokeWidth="3"

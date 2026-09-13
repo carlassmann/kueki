@@ -366,11 +366,11 @@ button svg {
   font-size: 13px;
   font-weight: 600;
 }
-.pip-hover-hint {
+.kueki-hover-hint {
   display: none;
 }
 @media (hover: hover) and (pointer: fine) {
-  .pip-hover-hint {
+  .kueki-hover-hint {
     display: inline;
   }
 }

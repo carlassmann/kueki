@@ -132,12 +132,12 @@ export function App() {
   const pwa = usePwa();
   const appMode = route.pathname.startsWith('/app') || !!incoming;
   useEffect(() => {
-    if (appMode || pwa.installed || sessionStorage.getItem('pip-install-tip-seen')) return;
+    if (appMode || pwa.installed || sessionStorage.getItem('kueki-install-tip-seen')) return;
     const timer = setTimeout(
       () => {
-        sessionStorage.setItem('pip-install-tip-seen', 'true');
+        sessionStorage.setItem('kueki-install-tip-seen', 'true');
         toast(t('common.install.title'), {
-          id: 'pip-install',
+          id: 'kueki-install',
           description: t('common.install.description'),
           duration: 7000,
           action: pwa.canInstall
@@ -195,7 +195,7 @@ export function App() {
           <header className="topbar">
             <Link className="brand" to={appMode ? '/app' : '/'} aria-label={t('app.homeLabel')}>
               <img src="/icon.svg" alt="" />
-              pip
+              kueki
             </Link>
             {(rooms.length > 0 || appMode) && (
               <div className="shell-actions">
@@ -231,7 +231,7 @@ export function App() {
               <LanguageSelect showLabel={false} />
             </div>
             <nav aria-label={t('nav.projectLinks')}>
-              <a href="https://github.com/carlassmann/babyphone" target="_blank" rel="noreferrer">
+              <a href="https://github.com/carlassmann/kueki" target="_blank" rel="noreferrer">
                 GitHub
               </a>
               <a href="https://carlassmann.com" target="_blank" rel="noreferrer">

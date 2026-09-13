@@ -11,7 +11,7 @@ import {
   ParentIcon,
 } from './icons';
 import { InvitationScanner } from './InvitationScanner';
-import { PipMascot } from './PipMascot';
+import { KuekiMascot } from './KuekiMascot';
 import { request } from './connection';
 import { errorMessage } from './format';
 import { T, useIntl } from './intl/setup';
@@ -79,12 +79,12 @@ export function Welcome({
           </h1>
           <div className="mascot-wrap">
             <figure className="landing-mascot-state">
-              <PipMascot className="landing-mascot" state="quiet" alt={t('welcome.mascotAlt')} />
+              <KuekiMascot className="landing-mascot" state="quiet" alt={t('welcome.mascotAlt')} />
               <figcaption>
                 <T
                   k="welcome.mascotHint"
                   components={{
-                    hint: ({ children }) => <span className="pip-hover-hint">{children}</span>,
+                    hint: ({ children }) => <span className="kueki-hover-hint">{children}</span>,
                   }}
                 />
               </figcaption>

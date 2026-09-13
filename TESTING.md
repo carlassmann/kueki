@@ -1,4 +1,4 @@
-# Pip verification
+# Kueki verification
 
 The backend now runs on Cloudflare Workers and one SQLite-backed Durable Object per room. The former Jazz tests were replaced with a workerd integration test covering the same authorization, persistence, cooldown, and fanout behaviors, plus durable alarms and delivery retries.
 
@@ -24,7 +24,7 @@ Tested the production build through the actual desktop apps, using the computer 
 - Captured the built-in microphone in both native Chrome and Safari. Connected Chrome baby → Safari parent and Safari baby → installed Chrome PWA. Browser UI reported live playback. The installed PWA listened to both babies simultaneously; stopping one left the other playing.
 - Acquired real baby and parent wake locks. Safari sometimes rejected the initial request after reopening or microphone permission; a subsequent interaction now reacquires it. Verified both Safari roles after the fix. OS sleep itself was not forced.
 - Changed sensitivity from the installed Chrome PWA and Safari parent; observed the updated value on the baby and other parent.
-- Installed Pip through Chrome's native install prompt. Verified standalone launch, remembered room, light/dark and dim controls, activity rendering, and a service-worker update returning to the connected app.
+- Installed Kueki through Chrome's native install prompt. Verified standalone launch, remembered room, light/dark and dim controls, activity rendering, and a service-worker update returning to the connected app.
 
 Real testing found and fixed two issues: Apple rejected the reserved default VAPID contact, and failed wake-lock requests needed a retry on focus or user interaction. Push authentication failures now identify server configuration instead of advising subscription retries. Regression checks cover the default VAPID JWT contact and wake-lock recovery after an initial rejection.
 
@@ -46,7 +46,7 @@ An independent QA agent reviewed and extended the runtime tests. Its Sol sub-age
 
 This review found and fixed:
 
-- Invitation links silently ignored when the device already belonged to another room. Pip now offers a room switch and preserves the invitation through leaving.
+- Invitation links silently ignored when the device already belonged to another room. Kueki now offers a room switch and preserves the invitation through leaving.
 - Paused audio still labeled as live. Playback interruption now exposes Resume audio, and ended playback clears the live status.
 - Late audio setup or resume completing after cancellation. Removed calls cannot restore a live status or restart their stream.
 - Baby monitoring UI remaining active after pagehide stopped its microphone. UI and audio now stop together.
@@ -78,7 +78,7 @@ No hosted deployment or physical-phone reliability claim has been made.
 
 ## Deployed QA, September 9, 2026
 
-Three independent GPT-5.6 Sol agents checked `https://babyphone.carlassmann.com`.
+Three independent GPT-5.6 Sol agents checked `https://kueki.carlassmann.com`.
 
 Production API checks passed for room creation, two invitation joins, cross-room isolation, invalid tokens, three authenticated WebSockets, shared sensitivity broadcasts, and a disconnected baby's offline event and stopped-monitoring state. Device removal closed its socket with code 4001, revoked HTTP access, and rotated the invitation. Reset rejected the previous invitation and allowed a fresh join. The backend probe removed its devices and temporary script. An initial offline-event timeout came from the probe also letting parent heartbeats expire; the corrected probe passed.
 

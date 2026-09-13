@@ -5,4 +5,4 @@ dist
 artifacts
 test-results
 bun.lock
-public/pip-local-ca.crt
+public/kueki-local-ca.crt

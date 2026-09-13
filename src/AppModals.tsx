@@ -212,7 +212,7 @@ function PrivacyContent() {
       <p>{t('privacy.paragraph2')}</p>
       <div className="project-links">
         <a
-          href="https://github.com/carlassmann/babyphone"
+          href="https://github.com/carlassmann/kueki"
           target="_blank"
           rel="noreferrer"
           data-testid="source-code"

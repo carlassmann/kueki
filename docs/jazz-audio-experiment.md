@@ -1,14 +1,14 @@
 # Archived experiment
 
-Jazz was removed when Pip moved to Cloudflare. The commands below describe the earlier local experiment and are no longer available.
+Jazz was removed when Kueki moved to Cloudflare. The commands below describe the earlier local experiment and are no longer available.
 
 # Jazz audio experiment
 
-This isolated experiment tests whether Jazz v2 can transport short audio recordings for Pip. Pip's existing WebRTC path is unchanged. Nothing is deployed.
+This isolated experiment tests whether Jazz v2 can transport short audio recordings for Kueki. Kueki's existing WebRTC path is unchanged. Nothing is deployed.
 
 Run `work run jazz-audio`, then open http://localhost:4320 in two browser windows. Click Record microphone in one and Listen to Jazz in the other. Stop recording when finished. Use `work stop jazz-audio` to discard the experiment's in-memory databases.
 
-The server binds to loopback. This is a single-stream local experiment with no room authentication, not a deployable endpoint. The normal Pip schema and database are not used.
+The server binds to loopback. This is a single-stream local experiment with no room authentication, not a deployable endpoint. The normal Kueki schema and database are not used.
 
 ## Data path
 
@@ -49,6 +49,6 @@ Each JSON upload was about 42.75 kB, or 154 MB per recording hour, before HTTP a
 
 ## Final decision
 
-Pip returned to WebRTC and moved its room state, signaling, alerts, and push retries to Cloudflare Workers and Durable Objects. Cloudflare Realtime TURN provides the configured relay fallback. The experiment code and commands above were removed.
+Kueki returned to WebRTC and moved its room state, signaling, alerts, and push retries to Cloudflare Workers and Durable Objects. Cloudflare Realtime TURN provides the configured relay fallback. The experiment code and commands above were removed.
 
-The experiment demonstrated delayed playback through Jazz, but did not establish hosted latency, long-term storage cleanup, or efficient bandwidth use. Pip does not upload or store audio snippets.
+The experiment demonstrated delayed playback through Jazz, but did not establish hosted latency, long-term storage cleanup, or efficient bandwidth use. Kueki does not upload or store audio snippets.

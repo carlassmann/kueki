@@ -2,7 +2,7 @@ export type Locale = 'en' | 'de';
 
 export const LOCALES: Locale[] = ['en', 'de'];
 
-const STORAGE_KEY = 'pip-locale';
+const STORAGE_KEY = 'kueki-locale';
 
 export function isLocale(value: unknown): value is Locale {
   return value === 'en' || value === 'de';

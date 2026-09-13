@@ -24,7 +24,7 @@ if (!(await Bun.file('.certs/ca.key').exists()))
     '-days',
     '365',
     '-subj',
-    '/CN=Pip local development CA',
+    '/CN=Kueki local development CA',
     '-addext',
     'basicConstraints=critical,CA:TRUE',
     '-addext',
@@ -40,7 +40,7 @@ openssl([
   '-out',
   '.certs/server.csr',
   '-subj',
-  '/CN=Pip local prototype',
+  '/CN=Kueki local prototype',
 ]);
 await Bun.write(
   '.certs/extensions.cnf',
@@ -63,6 +63,6 @@ openssl([
   '-extfile',
   '.certs/extensions.cnf',
 ]);
-await Bun.write('public/pip-local-ca.crt', Bun.file('.certs/ca.crt'));
+await Bun.write('public/kueki-local-ca.crt', Bun.file('.certs/ca.crt'));
 console.log('Local HTTPS certificates generated. No system trust settings changed.');
 for (const address of addresses) console.log(`Phone URL: https://${address}:4312`);

@@ -207,7 +207,7 @@ export class Room extends DurableObject<Env> {
         const status = await sendPush(this.env, device.subscription, {
           title: translate('push.test.title', {}),
           body: translate('push.test.body', {}),
-          tag: 'pip-test',
+          tag: 'kueki-test',
         });
         if (status < 200 || status >= 300) throw pushDeliveryError(status);
         return json({ ok: true });

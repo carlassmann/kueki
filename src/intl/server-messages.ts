@@ -100,8 +100,8 @@ const pushMessagesEn = messages({
   'push.paused.body': '{$name} stopped monitoring.',
   'push.offline.title': 'Check your baby device',
   'push.offline.body': '{$name} lost its connection. Check on your baby.',
-  'push.test.title': 'Pip is all ears',
-  'push.test.body': 'Your test notification arrived. Try this again with Pip in the background.',
+  'push.test.title': 'Kueki is all ears',
+  'push.test.body': 'Your test notification arrived. Try this again with Kueki in the background.',
 });
 
 const pushMessagesDe = translate(pushMessagesEn, {
@@ -111,9 +111,9 @@ const pushMessagesDe = translate(pushMessagesEn, {
   'push.paused.body': '{$name} hat die Überwachung gestoppt.',
   'push.offline.title': 'Prüfe dein Babygerät',
   'push.offline.body': '{$name} hat die Verbindung verloren. Schau nach deinem Baby.',
-  'push.test.title': 'Pip ist ganz Ohr',
+  'push.test.title': 'Kueki ist ganz Ohr',
   'push.test.body':
-    'Deine Testbenachrichtigung ist angekommen. Versuch es erneut, während Pip im Hintergrund ist.',
+    'Deine Testbenachrichtigung ist angekommen. Versuch es erneut, während Kueki im Hintergrund ist.',
 });
 
 const errorCatalogs = { en: errorMessagesEn, de: errorMessagesDe } as const;

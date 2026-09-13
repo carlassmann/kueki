@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { readFileSync } from 'node:fs';
-const https = process.env.PIP_HTTPS
+const https = process.env.KUEKI_HTTPS
   ? { key: readFileSync('.certs/server.key'), cert: readFileSync('.certs/server.crt') }
   : undefined;
 export default defineConfig({
@@ -11,7 +11,7 @@ export default defineConfig({
       name: 'local-phone-certificate',
       configurePreviewServer(server) {
         if (!https) return;
-        server.middlewares.use('/pip-local-ca.crt', (_request, response) => {
+        server.middlewares.use('/kueki-local-ca.crt', (_request, response) => {
           response.setHeader('Content-Type', 'application/x-x509-ca-cert');
           response.end(readFileSync('.certs/ca.crt'));
         });

@@ -19,7 +19,7 @@ const baseModalMessages = messages({
 
   'privacy.title': 'Privacy',
   'privacy.paragraph1':
-    'Sound is analyzed on the baby device. Pip never records it. Live listening uses an encrypted audio connection between your devices, with a relay only when needed.',
+    'Sound is analyzed on the baby device. Kueki never records it. Live listening uses an encrypted audio connection between your devices, with a relay only when needed.',
   'privacy.paragraph2':
     'Your invitation code is the key to your room. Share it only with people you trust.',
   'privacy.source': 'Source code',
@@ -51,12 +51,12 @@ const baseModalMessages = messages({
 
   'scanner.title': 'Scan invitation',
   'scanner.prompt': 'Point your camera at the invitation QR code.',
-  'scanner.invalid': 'This is not a Pip invitation code. Try another QR code.',
+  'scanner.invalid': 'This is not a Kueki invitation code. Try another QR code.',
   'scanner.cameraUnavailable':
     'Camera unavailable. Allow camera access, or close this and paste the code.',
 
   'qr.alt': 'Invitation code QR',
-  'qr.hint': 'Scan to copy the code, then paste it into Pip’s Join a room screen.',
+  'qr.hint': 'Scan to copy the code, then paste it into Kueki’s Join a room screen.',
   'qr.unavailable': 'QR code unavailable. Copy the invitation code below.',
 });
 
@@ -77,7 +77,7 @@ const deModalMessages = translate(baseModalMessages, {
 
   'privacy.title': 'Datenschutz',
   'privacy.paragraph1':
-    'Der Ton wird auf dem Babygerät analysiert. Pip zeichnet ihn nie auf. Beim Live-Zuhören wird eine verschlüsselte Audioverbindung zwischen deinen Geräten verwendet, mit einer Weiterleitung nur bei Bedarf.',
+    'Der Ton wird auf dem Babygerät analysiert. Kueki zeichnet ihn nie auf. Beim Live-Zuhören wird eine verschlüsselte Audioverbindung zwischen deinen Geräten verwendet, mit einer Weiterleitung nur bei Bedarf.',
   'privacy.paragraph2':
     'Dein Einladungscode ist der Schlüssel zu deinem Raum. Teile ihn nur mit Personen, denen du vertraust.',
   'privacy.source': 'Quellcode',
@@ -109,12 +109,12 @@ const deModalMessages = translate(baseModalMessages, {
 
   'scanner.title': 'Einladung scannen',
   'scanner.prompt': 'Richte deine Kamera auf den QR-Code der Einladung.',
-  'scanner.invalid': 'Das ist kein Pip-Einladungscode. Versuch es mit einem anderen QR-Code.',
+  'scanner.invalid': 'Das ist kein Kueki-Einladungscode. Versuch es mit einem anderen QR-Code.',
   'scanner.cameraUnavailable':
     'Kamera nicht verfügbar. Erlaube den Kamerazugriff oder schließe das Fenster und füge den Code ein.',
 
   'qr.alt': 'QR-Code für den Einladungscode',
   'qr.hint':
-    'Scanne, um den Code zu kopieren, und füge ihn dann in den Bildschirm „Raum betreten“ von Pip ein.',
+    'Scanne, um den Code zu kopieren, und füge ihn dann in den Bildschirm „Raum betreten“ von Kueki ein.',
   'qr.unavailable': 'QR-Code nicht verfügbar. Kopiere den Einladungscode unten.',
 });

@@ -1,11 +1,5 @@
-const CACHE = 'pip-shell-v1';
-const ASSETS = [
-  '/',
-  '/icon.svg',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/manifest.webmanifest',
-];
+const CACHE = 'kueki-shell-v1';
+const ASSETS = ['/', '/icon.svg', '/icon-192.png', '/icon-512.png', '/manifest.webmanifest'];
 self.addEventListener('install', (event) =>
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS))),
 );
@@ -17,7 +11,7 @@ self.addEventListener('activate', (event) =>
         .then((keys) =>
           Promise.all(
             keys
-              .filter((key) => key.startsWith('pip-shell-') && key !== CACHE)
+              .filter((key) => key.startsWith('kueki-shell-') && key !== CACHE)
               .map((key) => caches.delete(key)),
           ),
         ),
@@ -49,7 +43,7 @@ self.addEventListener('fetch', (event) => {
     );
 });
 self.addEventListener('push', (event) => {
-  let payload = { title: 'Check Pip', body: 'Your baby monitor has an update.', tag: 'pip' };
+  let payload = { title: 'Check Kueki', body: 'Your baby monitor has an update.', tag: 'kueki' };
   try {
     Object.assign(payload, event.data?.json());
   } catch {}

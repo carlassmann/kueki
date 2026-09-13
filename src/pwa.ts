@@ -32,13 +32,13 @@ export function usePwa() {
   useEffect(() => {
     if (!waiting) return;
     toast(t('pwa.updateTitle'), {
-      id: 'pip-update',
+      id: 'kueki-update',
       duration: Infinity,
       description: updateBlocked ? t('pwa.updateBlocked') : undefined,
       action: updateBlocked ? undefined : { label: t('pwa.updateAction'), onClick: update },
     });
     return () => {
-      toast.dismiss('pip-update');
+      toast.dismiss('kueki-update');
     };
   }, [waiting, updateBlocked, update, t]);
   useEffect(() => {
@@ -90,7 +90,7 @@ export function usePwa() {
     const choice = await prompt.userChoice;
     if (choice.outcome === 'accepted') {
       setInstalled(true);
-      toast.dismiss('pip-install');
+      toast.dismiss('kueki-install');
     }
     setPrompt(undefined);
   }, [prompt]);

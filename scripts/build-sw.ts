@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { rm } from 'node:fs/promises';
-await rm('dist/pip-local-ca.crt', { force: true });
+await rm('dist/kueki-local-ca.crt', { force: true });
 const assets = Array.from(new Bun.Glob('**/*').scanSync('dist'))
   .filter((path) => path !== 'sw.js' && path !== '_headers')
   .sort()
@@ -12,6 +12,6 @@ const version = hash.digest('hex').slice(0, 12);
 await Bun.write(
   'dist/sw.js',
   source
-    .replace("'pip-shell-v1'", `'pip-shell-${version}'`)
+    .replace("'kueki-shell-v1'", `'kueki-shell-${version}'`)
     .replace(/const ASSETS = \[[\s\S]*?\];/, `const ASSETS = ${JSON.stringify(['/', ...assets])};`),
 );

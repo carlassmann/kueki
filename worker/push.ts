@@ -26,7 +26,7 @@ export async function sendPush(env: Env, subscription: webpush.PushSubscription,
     TTL: 60,
     urgency: 'high',
     vapidDetails: {
-      subject: env.VAPID_SUBJECT || 'https://github.com/carlassmann/babyphone',
+      subject: env.VAPID_SUBJECT || 'https://github.com/carlassmann/kueki',
       publicKey: env.VAPID_PUBLIC_KEY,
       privateKey: env.VAPID_PRIVATE_KEY,
     },

@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Pip · Baby monitor",
-  "short_name": "Pip",
+  "name": "Kueki · Baby monitor",
+  "short_name": "Kueki",
   "description": "A little peace of mind. A private audio baby monitor.",
   "start_url": "/app",
   "scope": "/",

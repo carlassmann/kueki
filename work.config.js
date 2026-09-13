@@ -1,5 +1,5 @@
 export default {
-  project: 'pip',
+  project: 'kueki',
   commands: {
     api: {
       run: 'bunx wrangler dev --local --ip 127.0.0.1 --port 4311 --persist-to .data/cloudflare',
@@ -13,7 +13,7 @@ export default {
       portless: false,
     },
     https: {
-      run: 'PIP_HTTPS=1 bun --bun vite preview --host 0.0.0.0 --port 4312',
+      run: 'KUEKI_HTTPS=1 bun --bun vite preview --host 0.0.0.0 --port 4312',
       autoStart: false,
       portless: false,
     },

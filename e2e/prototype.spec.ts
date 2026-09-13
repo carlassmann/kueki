@@ -6,7 +6,7 @@ async function create(page: Page, role: 'Baby' | 'Me', name: string) {
   await page.getByTestId('device-name').fill(name);
   await page.getByTestId('submit-room').click();
   await expect(page.getByTestId('connection-status')).toHaveAttribute('data-status', 'connected');
-  return page.evaluate(() => JSON.parse(localStorage.getItem('pip-session')!));
+  return page.evaluate(() => JSON.parse(localStorage.getItem('kueki-session')!));
 }
 test('real baby + two parents: pairing, received audio packets, sound alert, network loss and recovery', async ({
   browser,
@@ -402,7 +402,7 @@ test('first-run layout, keyboard dialog, invalid invite and denied microphone', 
   await expect(page.getByTestId('privacy-modal')).toBeVisible();
   await expect(page.getByTestId('source-code')).toHaveAttribute(
     'href',
-    'https://github.com/carlassmann/babyphone',
+    'https://github.com/carlassmann/kueki',
   );
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('privacy-modal')).not.toBeVisible();
@@ -430,7 +430,7 @@ test('first-run layout, keyboard dialog, invalid invite and denied microphone', 
   await page.reload();
   await expect(page).toHaveURL(/\/app\/settings$/);
   await expect(page.getByTestId('enable-notifications')).toBeVisible();
-  const previous = await page.evaluate(() => JSON.parse(localStorage.getItem('pip-session')!));
+  const previous = await page.evaluate(() => JSON.parse(localStorage.getItem('kueki-session')!));
   const invitationResponse = await page.request.post('/api/register', {
     data: { role: 'parent', name: 'Host', roomName: 'Caregiver handoff' },
   });
@@ -516,7 +516,7 @@ test('first-run layout, keyboard dialog, invalid invite and denied microphone', 
     )
     .click();
   await expect(page.getByTestId('rooms-error')).toBeVisible();
-  expect(await page.evaluate(() => localStorage.getItem('pip-session'))).toBeNull();
+  expect(await page.evaluate(() => localStorage.getItem('kueki-session'))).toBeNull();
   await page.locator('[data-testid="forget-room"][data-room-name="Evening nursery"]').click();
   await expect(
     page.locator('[data-testid="room-option"][data-room-name="Evening nursery"]'),

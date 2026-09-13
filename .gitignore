@@ -39,7 +39,7 @@ playwright-report/
 .reference
 .references
 
-public/pip-local-ca.crt
+public/kueki-local-ca.crt
 
 # local captures
 artifacts/

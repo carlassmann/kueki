@@ -1,7 +1,7 @@
 import type { Session } from './protocol';
 
-const ACTIVE_SESSION_KEY = 'pip-session';
-const SAVED_ROOMS_KEY = 'pip-rooms';
+const ACTIVE_SESSION_KEY = 'kueki-session';
+const SAVED_ROOMS_KEY = 'kueki-rooms';
 
 function isSession(value: unknown): value is Session {
   const session = value as Session | null;

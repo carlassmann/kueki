@@ -39,7 +39,7 @@ try {
   const baby = await babyContext.newPage();
   await baby.goto(origin);
   await baby.evaluate(
-    (session) => localStorage.setItem('pip-session', JSON.stringify(session)),
+    (session) => localStorage.setItem('kueki-session', JSON.stringify(session)),
     babySession,
   );
   await baby.reload();
@@ -48,7 +48,7 @@ try {
   await baby.getByRole('button', { name: 'Start monitoring' }).click();
   await baby.getByRole('button', { name: 'Pause monitoring' }).waitFor();
   await parent.evaluate(
-    (session) => localStorage.setItem('pip-session', JSON.stringify(session)),
+    (session) => localStorage.setItem('kueki-session', JSON.stringify(session)),
     parentSession,
   );
   await parent.reload();

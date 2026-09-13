@@ -1,10 +1,10 @@
-# Pip
+# Kueki
 
 A private audio baby monitor PWA. React, TanStack Router, TypeScript, and Bun tooling. Cloudflare Workers hosts the app and API. Each room has a SQLite-backed Durable Object for devices, WebSocket signaling, events, and notification retries. Live audio uses WebRTC with Cloudflare Realtime TURN as fallback.
 
 No Jazz, Vercel, or separate database account is required. No audio is recorded or stored. Browser push delivery still goes through Apple, Google, or Mozilla's push services as required by the browser.
 
-Pip is a working local prototype. Nothing has been deployed.
+Kueki is a working local prototype. Nothing has been deployed.
 
 ## What you can do
 
@@ -12,11 +12,11 @@ Pip is a working local prototype. Nothing has been deployed.
 - Remove devices from a parent screen and reset invitation links.
 - Listen to multiple babies at once, with separate playback controls.
 - Receive Web Push for sustained sound, paused monitoring, and disconnected baby devices, including when parent tabs are closed.
-- Keep baby and parent screens awake while Pip is open. The app shows when the browser denies wake lock.
+- Keep baby and parent screens awake while Kueki is open. The app shows when the browser denies wake lock.
 - Adjust each baby's saved sensitivity from any parent device.
 - View and reset room activity, with up to 30 events from the last 24 hours.
 - Install the PWA, follow the system appearance, and dim either device's screen.
-- Use Pip in English or German. Pip follows the browser language and can be switched in settings or the landing footer.
+- Use Kueki in English or German. Kueki follows the browser language and can be switched in settings or the landing footer.
 
 Real desktop Chrome and Safari testing covered microphones, cross-browser audio, simultaneous listening, push delivery with parent tabs closed, and wake locks. Chrome installation and service-worker updates also passed. Physical locked-phone delivery and Cloudflare TURN across networks still need testing. See [test evidence](TESTING.md).
 
@@ -54,9 +54,9 @@ bun run build
 work run https
 ```
 
-The setup command prints the LAN URL on port 4312. Install and trust the local CA from `/pip-local-ca.crt` on each phone. On iOS, enable full trust under Settings → General → About → Certificate Trust Settings. Certificates stay local and must never be committed or deployed.
+The setup command prints the LAN URL on port 4312. Install and trust the local CA from `/kueki-local-ca.crt` on each phone. On iOS, enable full trust under Settings → General → About → Certificate Trust Settings. Certificates stay local and must never be committed or deployed.
 
-Leave the baby device plugged in, with Pip open and its screen awake. Keep the Mac running while using the local backend. Same-network audio can work without TURN; restrictive networks need relay credentials.
+Leave the baby device plugged in, with Kueki open and its screen awake. Keep the Mac running while using the local backend. Same-network audio can work without TURN; restrictive networks need relay credentials.
 
 ## Cloudflare setup
 
@@ -79,7 +79,7 @@ For later secret changes, use `bunx wrangler secret put NAME`. Keep `.dev.vars` 
 | TURN_KEY_ID        | Cloudflare Realtime TURN key ID                 |
 | TURN_KEY_API_TOKEN | Server-only token for issuing relay credentials |
 
-Use a real HTTPS contact URL or email for `VAPID_SUBJECT`; Apple rejects reserved placeholder domains such as `pip.example` with `BadJwtToken`. If omitted, Pip uses this repository's public URL.
+Use a real HTTPS contact URL or email for `VAPID_SUBJECT`; Apple rejects reserved placeholder domains such as `kueki.example` with `BadJwtToken`. If omitted, Kueki uses this repository's public URL.
 
 `bun run setup` generates local VAPID keys and copies only the push settings into `.dev.vars`. Keep VAPID keys stable after devices subscribe. TURN credentials are generated only for authenticated room devices, cached for five minutes, and valid for 24 hours. New listening connections fetch configuration again. An uninterrupted session exceeding that duration needs credential renewal, which is not yet implemented.
 
@@ -87,13 +87,13 @@ Without TURN secrets, local audio attempts direct WebRTC using Cloudflare STUN. 
 
 ## Invite a caregiver or remove access
 
-From any parent device, choose **Invite device → Copy invite link**. The caregiver opens it, chooses **Me**, names their device, and joins. They can listen live and enable notifications. The invitation also includes a QR containing the raw code: scan it, copy the text, and paste it into **Join a room** in the installed app. **Join a room → Scan QR code** can also open the camera and fill the code directly. Camera capture stops after scanning or closing; manual entry remains available if permission is denied. Displayed and entered codes use monospace. Invitations do not expire automatically. If their device already belongs to another room, Pip asks whether to switch rooms before opening the invitation. The previous membership stays saved.
+From any parent device, choose **Invite device → Copy invite link**. The caregiver opens it, chooses **Me**, names their device, and joins. They can listen live and enable notifications. The invitation also includes a QR containing the raw code: scan it, copy the text, and paste it into **Join a room** in the installed app. **Join a room → Scan QR code** can also open the camera and fill the code directly. Camera capture stops after scanning or closing; manual entry remains available if permission is denied. Displayed and entered codes use monospace. Invitations do not expire automatically. If their device already belongs to another room, Kueki asks whether to switch rooms before opening the invitation. The previous membership stays saved.
 
 To remove access, open **Settings → Manage this device → Room access → Remove** beside the device. This revokes that device's session, disconnects its live audio, removes its push subscription and queued notifications, and resets the room invitation. Old links stop working. Existing room members stay connected and can copy the new invitation. A notification already accepted by a push provider may still arrive.
 
 **Invite device → Reset invitation link** invalidates old links without removing existing members. Leaving voluntarily removes only that device; it does not reset the invitation.
 
-Every parent has these controls. Pip has no owner or restricted guest role. If someone joined on multiple devices, remove each device. They can regain access only through a fresh invitation shared by a remaining room member.
+Every parent has these controls. Kueki has no owner or restricted guest role. If someone joined on multiple devices, remove each device. They can regain access only through a fresh invitation shared by a remaining room member.
 
 ## Manage and switch rooms
 
@@ -107,17 +107,17 @@ Parents can rename the room under **Settings → Room**. **Settings → Manage t
 
 There is no application-level device-count cap. Practical capacity depends on browser and Cloudflare limits. Parents can listen to multiple babies simultaneously, with independent playback controls. Invitation codes are random capabilities; each device also has its own token. The public room ID alone grants no access. Device tokens are stored as hashes; push subscriptions and TURN API tokens are never broadcast.
 
-If the connection drops, Pip stops live playback and reconnects its room connection automatically. Tap Listen again after reconnection to resume audio. If the browser pauses playback, Pip offers Resume audio instead of continuing to say it is listening.
+If the connection drops, Kueki stops live playback and reconnects its room connection automatically. Tap Listen again after reconnection to resume audio. If the browser pauses playback, Kueki offers Resume audio instead of continuing to say it is listening.
 
 Room WebSockets use Durable Object hibernation and restore socket metadata after eviction. The baby sends a heartbeat every three seconds. A durable alarm checks missing heartbeats from connected baby devices after twelve seconds, including paused baby devices, and records a disconnect event once. Alarm scheduling and delivery are not exact deadlines.
 
 Alert events and per-parent notification jobs are created in one SQLite transaction. Jobs survive runtime restarts, retry failures for up to sixty seconds, and stop retrying invalid push subscriptions. Retries can deliver more than once after an ambiguous response; notification tags use stable event IDs to replace duplicates. Events expire after one day and are capped at thirty per room. Activity shows every stored event, and parents can clear the log for the room. Clearing activity does not cancel notification delivery.
 
-Pip measures sustained sound, not whether a baby is crying. It is an extra pair of ears, not a replacement for checking on your baby.
+Kueki measures sustained sound, not whether a baby is crying. It is an extra pair of ears, not a replacement for checking on your baby.
 
-Baby sensitivity is stored per device in its room and can be changed by that baby or any parent in the room. Changes sync immediately and survive reloads. Parents request screen wake lock while the room is open, including Activity and Settings. Wake lock can still be denied or revoked by the OS; Pip displays its status and retries after release, returning to the foreground, or interacting with the screen.
+Baby sensitivity is stored per device in its room and can be changed by that baby or any parent in the room. Changes sync immediately and survive reloads. Parents request screen wake lock while the room is open, including Activity and Settings. Wake lock can still be denied or revoked by the OS; Kueki displays its status and retries after release, returning to the foreground, or interacting with the screen.
 
-Pip follows the device's light or dark appearance. Screen dimming is a separate device-local preference available on baby and parent screens, and persists across reloads.
+Kueki follows the device's light or dark appearance. Screen dimming is a separate device-local preference available on baby and parent screens, and persists across reloads.
 
 ## Verification
 

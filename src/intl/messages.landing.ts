@@ -4,8 +4,8 @@ export { baseLandingMessages, deLandingMessages };
 
 const baseLandingMessages = messages({
   'welcome.hero': 'Close by.{#br}{/br}Even from{#br}{/br}{#em}the next room.{/em}',
-  'welcome.mascotAlt': 'Pip breathing gently while the room is quiet',
-  'welcome.mascotHint': 'Psst… tap{#hint} or hover{/hint} to wake Pip.',
+  'welcome.mascotAlt': 'Kueki breathing gently while the room is quiet',
+  'welcome.mascotHint': 'Psst… tap{#hint} or hover{/hint} to wake Kueki.',
   'welcome.setupTitle': 'Set up your monitor',
   'welcome.title': 'Their room. {#br}{/br}Your peace of mind.',
   'welcome.intro':
@@ -40,9 +40,9 @@ const baseLandingMessages = messages({
 
 const deLandingMessages = translate(baseLandingMessages, {
   'welcome.hero': 'Ganz nah.{#br}{/br}Auch aus{#br}{/br}{#em}dem Nebenzimmer.{/em}',
-  'welcome.mascotAlt': 'Pip atmet ruhig, während es im Zimmer still ist',
+  'welcome.mascotAlt': 'Kueki atmet ruhig, während es im Zimmer still ist',
   'welcome.mascotHint':
-    'Pssst… tippe{#hint} oder fahre mit der Maus{/hint} darauf, um Pip zu wecken.',
+    'Pssst… tippe{#hint} oder fahre mit der Maus{/hint} darauf, um Kueki zu wecken.',
   'welcome.setupTitle': 'Richte deinen Monitor ein',
   'welcome.title': 'Ihr Zimmer. {#br}{/br}Deine Ruhe.',
   'welcome.intro':

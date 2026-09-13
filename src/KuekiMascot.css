@@ -15,7 +15,7 @@
   transform: none;
 }
 
-.pip-character {
+.kueki-character {
   display: block;
   width: 100%;
   height: 100%;
@@ -25,11 +25,11 @@
   transition: opacity 220ms ease;
 }
 
-.monitor-mascot.paused .pip-character {
+.monitor-mascot.paused .kueki-character {
   opacity: 0.7;
 }
 
-.pip-feather-lines {
+.kueki-feather-lines {
   fill: none;
   stroke: #d9ad60;
   stroke-width: 2;
@@ -37,44 +37,44 @@
   opacity: 0.3;
 }
 
-.pip-body-posture,
-.pip-head-posture,
-.pip-wing-posture,
-.pip-eyes-open,
-.pip-tuft {
+.kueki-body-posture,
+.kueki-head-posture,
+.kueki-wing-posture,
+.kueki-eyes-open,
+.kueki-tuft {
   transition: transform 850ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.pip-body-posture,
-.pip-breath {
+.kueki-body-posture,
+.kueki-breath {
   transform-origin: 192px 222px;
 }
 
-.pip-head-posture,
-.pip-head-breathe {
+.kueki-head-posture,
+.kueki-head-breathe {
   transform-origin: 171px 176px;
 }
 
-.pip-head-posture {
+.kueki-head-posture {
   transform: translateY(4px) rotate(-8deg);
 }
 
-.pip-wing-posture,
-.pip-wing-breathe {
+.kueki-wing-posture,
+.kueki-wing-breathe {
   transform-origin: 233px 154px;
 }
 
-.pip-tuft {
+.kueki-tuft {
   transform-origin: 141px 72px;
   transform: rotate(-7deg);
 }
 
-.pip-eyes-open,
-.pip-blink {
+.kueki-eyes-open,
+.kueki-blink {
   transform-origin: 143px 134px;
 }
 
-.pip-eyes-open {
+.kueki-eyes-open {
   opacity: 0;
   transform: scaleY(0.15);
   transition:
@@ -82,87 +82,87 @@
     transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.pip-eyes-closed,
-.pip-sleep-marks,
-.pip-sound-marks {
+.kueki-eyes-closed,
+.kueki-sleep-marks,
+.kueki-sound-marks {
   transition: opacity 220ms ease;
 }
 
-.pip-sound-marks {
+.kueki-sound-marks {
   opacity: 0;
 }
 
-.pip-beak-lower {
+.kueki-beak-lower {
   transform-origin: 2px 2px;
   transform: scaleY(0.55);
 }
 
-.monitor-mascot[data-pose='awake'] .pip-body-posture {
+.monitor-mascot[data-pose='awake'] .kueki-body-posture {
   transform: translateY(-2px) scaleY(1.035);
 }
 
-.monitor-mascot[data-pose='awake'] .pip-head-posture {
+.monitor-mascot[data-pose='awake'] .kueki-head-posture {
   transform: translate(2px, -12px) rotate(3deg);
   transition-duration: 620ms;
 }
 
-.monitor-mascot[data-pose='awake'] .pip-wing-posture {
+.monitor-mascot[data-pose='awake'] .kueki-wing-posture {
   transform: rotate(-16deg) translateY(-2px);
   transition-duration: 700ms;
 }
 
-.monitor-mascot[data-pose='awake'] .pip-tuft {
+.monitor-mascot[data-pose='awake'] .kueki-tuft {
   transform: rotate(9deg);
 }
 
-.monitor-mascot[data-pose='awake'] .pip-eyes-open {
+.monitor-mascot[data-pose='awake'] .kueki-eyes-open {
   opacity: 1;
   transform: scaleY(1);
   transition-delay: 100ms;
 }
 
-.monitor-mascot[data-pose='awake'] .pip-eyes-closed,
-.monitor-mascot[data-pose='awake'] .pip-sleep-marks {
+.monitor-mascot[data-pose='awake'] .kueki-eyes-closed,
+.monitor-mascot[data-pose='awake'] .kueki-sleep-marks {
   opacity: 0;
 }
 
-.monitor-mascot.sound .pip-sound-marks {
+.monitor-mascot.sound .kueki-sound-marks {
   opacity: 1;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .monitor-mascot:not(.paused) .pip-breath {
-    animation: pip-chest-breath 4s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+  .monitor-mascot:not(.paused) .kueki-breath {
+    animation: kueki-chest-breath 4s cubic-bezier(0.45, 0, 0.35, 1) infinite;
   }
 
-  .monitor-mascot:not(.paused) .pip-head-breathe {
-    animation: pip-head-breath 4s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+  .monitor-mascot:not(.paused) .kueki-head-breathe {
+    animation: kueki-head-breath 4s cubic-bezier(0.45, 0, 0.35, 1) infinite;
     animation-delay: 120ms;
   }
 
-  .monitor-mascot:not(.paused) .pip-wing-breathe {
-    animation: pip-wing-breath 4s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+  .monitor-mascot:not(.paused) .kueki-wing-breathe {
+    animation: kueki-wing-breath 4s cubic-bezier(0.45, 0, 0.35, 1) infinite;
     animation-delay: 200ms;
   }
 
-  .monitor-mascot:not(.paused) .pip-sleep-mark {
-    animation: pip-dream 4.8s ease-in-out infinite;
+  .monitor-mascot:not(.paused) .kueki-sleep-mark {
+    animation: kueki-dream 4.8s ease-in-out infinite;
   }
 
-  .monitor-mascot:not(.paused) .pip-sleep-mark + .pip-sleep-mark {
+  .monitor-mascot:not(.paused) .kueki-sleep-mark + .kueki-sleep-mark {
     animation-delay: 900ms;
   }
 
-  .monitor-mascot[data-pose='awake'] .pip-blink {
-    animation: pip-blink 4.6s ease-in-out infinite;
+  .monitor-mascot[data-pose='awake'] .kueki-blink {
+    animation: kueki-blink 4.6s ease-in-out infinite;
   }
 
-  .monitor-mascot[data-pose='awake'] .pip-beak-lower {
-    animation: pip-yawn 1500ms ease-in-out;
+  .monitor-mascot[data-pose='awake'] .kueki-beak-lower {
+    animation: kueki-yawn 1500ms ease-in-out;
   }
 }
 
-@keyframes pip-chest-breath {
+@keyframes kueki-chest-breath {
   0%,
   100% {
     transform: scale(1);
@@ -172,7 +172,7 @@
   }
 }
 
-@keyframes pip-head-breath {
+@keyframes kueki-head-breath {
   0%,
   100% {
     transform: translateY(0) rotate(0);
@@ -182,7 +182,7 @@
   }
 }
 
-@keyframes pip-wing-breath {
+@keyframes kueki-wing-breath {
   0%,
   100% {
     transform: rotate(0);
@@ -192,7 +192,7 @@
   }
 }
 
-@keyframes pip-dream {
+@keyframes kueki-dream {
   0%,
   100% {
     opacity: 0.25;
@@ -204,7 +204,7 @@
   }
 }
 
-@keyframes pip-blink {
+@keyframes kueki-blink {
   0%,
   14%,
   20%,
@@ -219,7 +219,7 @@
   }
 }
 
-@keyframes pip-yawn {
+@keyframes kueki-yawn {
   0%,
   100% {
     transform: scaleY(0.55);
@@ -231,16 +231,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pip-character * {
+  .kueki-character * {
     animation: none !important;
     transition: opacity 180ms ease !important;
   }
 
-  .monitor-mascot .pip-body-posture,
-  .monitor-mascot .pip-head-posture,
-  .monitor-mascot .pip-wing-posture,
-  .monitor-mascot .pip-tuft,
-  .monitor-mascot .pip-eyes-open {
+  .monitor-mascot .kueki-body-posture,
+  .monitor-mascot .kueki-head-posture,
+  .monitor-mascot .kueki-wing-posture,
+  .monitor-mascot .kueki-tuft,
+  .monitor-mascot .kueki-eyes-open {
     transform: none;
   }
 }

@@ -21,12 +21,12 @@ test(
   'Workers room isolation, encrypted push retries, TURN auth, and watchdog survive runtime restart',
   { timeout: 45000 },
   async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'pip-workers-'));
+    const directory = await mkdtemp(join(tmpdir(), 'kueki-workers-'));
     const vapid = webpush.generateVAPIDKeys();
     const attempts = new Map<string, number>();
     let turnRequests = 0;
     const options = convertV4MiniflareOptions({
-      name: 'pip-test',
+      name: 'kueki-test',
       modules: true,
       scriptPath: resolve('.worker-build/index.js'),
       compatibilityDate: '2026-09-07',
@@ -68,7 +68,7 @@ test(
         assert.match(authorization, /^vapid /);
         const token = authorization.match(/t=([^,]+)/)![1];
         const claims = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
-        assert.equal(claims.sub, 'https://github.com/carlassmann/babyphone');
+        assert.equal(claims.sub, 'https://github.com/carlassmann/kueki');
         assert.ok((await request.arrayBuffer()).byteLength > 100);
         const count = (attempts.get(url.pathname) || 0) + 1;
         attempts.set(url.pathname, count);
@@ -113,7 +113,7 @@ test(
     }
     try {
       const baby = await register({ name: 'Nursery', role: 'baby' });
-      const legacyStorage = await runtime.unsafeGetDurableObjectStorage('pip-test', 'Room', {
+      const legacyStorage = await runtime.unsafeGetDurableObjectStorage('kueki-test', 'Room', {
         id: baby.roomId,
       });
       await legacyStorage.exec("DELETE FROM records WHERE kind = 'room' AND id = 'invitation'");
@@ -278,7 +278,7 @@ test(
       });
       await eventually(async () => (attempts.get('/retry') || 0) >= 3);
       assert.equal(attempts.get('/gone'), 1);
-      const storage = await runtime.unsafeGetDurableObjectStorage('pip-test', 'Room', {
+      const storage = await runtime.unsafeGetDurableObjectStorage('kueki-test', 'Room', {
         id: baby.roomId,
       });
       await eventually(
@@ -297,7 +297,7 @@ test(
         const result = (await (await post('state', parent)).json()) as any;
         return result.devices.find((device: any) => device.id === baby.deviceId).monitoring;
       });
-      await runtime.unsafeEvictDurableObject('pip-test', 'Room', {
+      await runtime.unsafeEvictDurableObject('kueki-test', 'Room', {
         id: baby.roomId,
         webSockets: 'hibernate',
       });
