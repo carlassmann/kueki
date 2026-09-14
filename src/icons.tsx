@@ -10,6 +10,8 @@ import {
   Check,
   Copy,
   DeviceMobile,
+  DotsThreeOutlineVertical,
+  Export,
   GearSix,
   Headphones,
   House,
@@ -18,6 +20,7 @@ import {
   MoonStars,
   Pause,
   Plus,
+  PlusSquare,
   ShieldCheck,
   Sun,
   SunDim,
@@ -55,6 +58,9 @@ export const MicrophoneIcon = Microphone;
 export const BabyIcon = MoonStars;
 export const PauseIcon = Pause;
 export const AddIcon = Plus;
+export const AddToHomeIcon = PlusSquare;
+export const ShareIcon = Export;
+export const BrowserMenuIcon = DotsThreeOutlineVertical;
 export const BrightIcon = Sun;
 export const DimIcon = SunDim;
 export const SoundIcon = Waveform;

@@ -1,0 +1,106 @@
+[data-testid='install-guide'] h2 {
+  max-width: 20ch;
+  font-size: 27px;
+}
+
+.install-intro {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.install-steps {
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+  counter-reset: install-step;
+}
+
+.install-steps li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.install-steps li + li {
+  margin-top: 8px;
+}
+
+.install-steps li::before {
+  counter-increment: install-step;
+  content: counter(install-step);
+  position: absolute;
+  top: -4px;
+  left: 30px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--surface-raised);
+  background: var(--primary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.install-step-icon {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  color: var(--primary);
+  background: var(--surface-raised);
+  box-shadow: 0 0 0 var(--hairline) var(--line);
+}
+
+.install-note {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--mint);
+  background: var(--mint-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.install-required {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.install-required p {
+  margin: 0;
+}
+
+.install-nudge {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.install-nudge strong {
+  font-size: 15px;
+}
+
+.install-nudge span {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.install-nudge-actions {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}

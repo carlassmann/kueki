@@ -18,6 +18,7 @@ import { durationText } from '../../../format';
 import { LanguageSelect } from '../../../LanguageSelect';
 import { Button } from '../../../components/ui/button';
 import { Select } from '../../../components/ui/select';
+import { InstallRequiredCard } from '../../../InstallGuide';
 import './settings-screen.css';
 
 export function SettingsScreen() {
@@ -291,7 +292,13 @@ function NotificationSetup({ room }: { room: ReturnType<typeof useRoom> }) {
         )
       }
     >
-      {room.pushEnabled ? (
+      {room.installRequired && !room.pushEnabled ? (
+        <li className="settings-row settings-row-stack">
+          <InstallRequiredCard onShowGuide={room.openInstallGuide}>
+            {t('pwa.notificationsNeedInstall')}
+          </InstallRequiredCard>
+        </li>
+      ) : room.pushEnabled ? (
         <li className="settings-row">
           <span className="card-icon">
             <AlertIcon size={19} />

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { request } from './connection';
 import { useIntl } from './intl/setup';
+import { isMobile } from './platform';
 import { translate } from './intl/standalone';
 import type { Session } from './protocol';
 type InstallPrompt = Event & { prompt(): Promise<void>; userChoice: Promise<{ outcome: string }> };
@@ -19,6 +20,7 @@ export function usePwa() {
       Boolean((navigator as Navigator & { standalone?: boolean }).standalone),
   );
   const [error, setError] = useState('');
+  const [installGuideOpen, setInstallGuideOpen] = useState(false);
   const [updateBlocked, setUpdateBlocked] = useState(false);
   const blockedRef = useRef(false);
   blockedRef.current = updateBlocked;
@@ -42,6 +44,12 @@ export function usePwa() {
     };
   }, [waiting, updateBlocked, update, t]);
   useEffect(() => {
+    const standalone = matchMedia('(display-mode: standalone)');
+    const sync = () => setInstalled(standalone.matches);
+    standalone.addEventListener('change', sync);
+    return () => standalone.removeEventListener('change', sync);
+  }, []);
+  useEffect(() => {
     const install = (event: Event) => {
       event.preventDefault();
       setPrompt(event as InstallPrompt);
@@ -49,6 +57,7 @@ export function usePwa() {
     const complete = () => {
       setInstalled(true);
       setPrompt(undefined);
+      setInstallGuideOpen(false);
     };
     window.addEventListener('beforeinstallprompt', install);
     window.addEventListener('appinstalled', complete);
@@ -90,10 +99,13 @@ export function usePwa() {
     const choice = await prompt.userChoice;
     if (choice.outcome === 'accepted') {
       setInstalled(true);
+      setInstallGuideOpen(false);
       toast.dismiss('kueki-install');
     }
     setPrompt(undefined);
   }, [prompt]);
+  const openInstallGuide = useCallback(() => setInstallGuideOpen(true), []);
+  const closeInstallGuide = useCallback(() => setInstallGuideOpen(false), []);
   return {
     installed,
     waiting,
@@ -102,6 +114,10 @@ export function usePwa() {
     install,
     update,
     setUpdateBlocked,
+    installGuideOpen,
+    openInstallGuide,
+    closeInstallGuide,
+    notificationsNeedInstall: isMobile() && !installed,
   };
 }
 export async function enableNotifications(session: Session) {

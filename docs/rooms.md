@@ -8,6 +8,10 @@ The invitation also carries a QR code containing the raw code. Scan it and paste
 
 Invitations never expire on their own. If the device already belongs to another room, Kueki asks whether to switch first, and keeps the previous membership saved.
 
+## Installing on a phone
+
+Phones only deliver push notifications to installed apps, so a phone that should receive alerts needs Kueki on its Home Screen. Kueki nudges mobile visitors once per session and explains the steps for the current platform; Settings replaces the notification button with the same guide until the app runs standalone. Desktop browsers are left alone.
+
 ## Removing access
 
 Open Settings, Manage this device, Room access, then Remove next to the device. That revokes its session, disconnects its audio, drops its push subscription and queued notifications, and resets the room invitation, so old links stop working. Everyone else stays connected and can copy the new invitation. A notification a push service already accepted may still arrive.

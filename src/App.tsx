@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
-import { Toaster, toast } from 'sonner';
+import { Toaster } from 'sonner';
 import { usePwa } from './pwa';
+import { InstallGuideDialog, useInstallNudge } from './InstallGuide';
 import { Welcome } from './Welcome';
 import { Room, SettingsLinkRow } from './features/room';
 import { ApiError, request } from './connection';
@@ -133,24 +134,7 @@ export function App() {
 
   const pwa = usePwa();
   const appMode = route.pathname.startsWith('/app') || !!incoming;
-  useEffect(() => {
-    if (appMode || pwa.installed || sessionStorage.getItem('kueki-install-tip-seen')) return;
-    const timer = setTimeout(
-      () => {
-        sessionStorage.setItem('kueki-install-tip-seen', 'true');
-        toast(t('common.install.title'), {
-          id: 'kueki-install',
-          description: t('common.install.description'),
-          duration: 7000,
-          action: pwa.canInstall
-            ? { label: t('common.install.action'), onClick: () => void pwa.install() }
-            : undefined,
-        });
-      },
-      pwa.canInstall ? 400 : 1800,
-    );
-    return () => clearTimeout(timer);
-  }, [appMode, pwa.canInstall, pwa.install, pwa.installed]);
+  useInstallNudge(pwa, Boolean(session));
   function saveSession(value: Session | null) {
     setRooms((current) =>
       storeRooms(
@@ -255,6 +239,7 @@ export function App() {
             />
           )}
         {modal === 'privacy' && <PrivacyModal onClose={() => setModal('')} />}
+        {pwa.installGuideOpen && <InstallGuideDialog pwa={pwa} />}
       </div>
     </AppContext.Provider>
   );

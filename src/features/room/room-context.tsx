@@ -14,6 +14,7 @@ export type RoomModel = {
   dimmed: boolean;
   events: Alert[];
   isBaby: boolean;
+  installRequired: boolean;
   level: number;
   mutedBabies: string[];
   parents: PublicDevice[];
@@ -27,6 +28,7 @@ export type RoomModel = {
   changeSensitivity: (deviceId: string, sensitivity: number) => Promise<void>;
   clearEvents: () => Promise<void>;
   enableNotifications: () => Promise<void>;
+  openInstallGuide: () => void;
   listenTo: (deviceId: string) => void;
   openInvitation: () => void;
   openSettings: () => void;
