@@ -121,3 +121,30 @@ Real testing found one product bug behind a failing browser test: the Worker del
 The browser suite also carried a stale expectation: an earlier change raised the offline alert to a minute while the test still waited twenty-five seconds. The test now selects the thirty-second alert and waits accordingly.
 
 TypeScript, the production build, the Bun noise test, the workerd integration test and all seven browser tests pass.
+
+## Service worker resilience, September 15, 2026
+
+Installation no longer depends on a single `cache.addAll`. The precache list is split into essential
+assets (the `/` and `/app` documents plus the JavaScript and CSS they load) and optional ones (fonts,
+icons, images, SEO files); each entry is cached separately, and an unreachable path is logged rather
+than rejecting the install.
+
+Measured against the local Wrangler runtime on port 4311, with one precached path pointed at a name
+the Worker does not serve: the previous worker left `getRegistrations()` empty with no controller,
+while the current one activates, caches the remaining twenty-two entries, and still serves the app
+offline. Offline navigation to a never-visited app route now returns the cached `/app` document
+instead of the landing page; before, the landing document happened to boot the same bundle, so the
+offline app worked only by accident and painted the landing markup first.
+
+Two paths in the built list were never servable: `/app-shell.txt`, which the Worker 404s, and
+`/index.html`, which it redirects to `/`. Both are excluded from the precache, and `/app` is
+precached in their place because that is the path the Worker actually serves the shell from.
+
+A Playwright test reads the deployed `/sw.js`, parses both asset lists, and requests every path
+without following redirects, asserting 200 for each. It reproduces the original failure: reinstating
+`/app-shell.txt` and `/index.html` fails the test with 404 and 308. A second test goes offline and
+opens `/app/settings`, expecting the app UI and the shell's `noindex` meta tag.
+
+All nine browser tests, TypeScript, the production build, the Bun tests and the workerd integration
+test pass. Offline emulation was verified through Playwright's context-wide `setOffline`; CDP offline
+set on a page target alone does not apply to the service worker's own fetches.

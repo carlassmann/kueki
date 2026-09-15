@@ -55,3 +55,32 @@ test('production shell survives offline reload without claiming monitoring; brow
   });
   await context.close();
 });
+
+test('the Worker serves every precached path, so installation cannot fail on a missing asset', async ({
+  request,
+}) => {
+  const source = await (await request.get('http://localhost:4311/sw.js')).text();
+  const lists = source.matchAll(/const (?:ESSENTIAL|OPTIONAL)_ASSETS = (\[[^\]]*\]);/g);
+  const paths = [...lists].flatMap(([, list]) => JSON.parse(list) as string[]);
+  expect(paths).toContain('/app');
+  const statuses = await Promise.all(
+    paths.map(async (path) => ({
+      path,
+      status: (await request.get(`http://localhost:4311${path}`, { maxRedirects: 0 })).status(),
+    })),
+  );
+  expect(statuses.filter(({ status }) => status !== 200)).toEqual([]);
+});
+
+test('an app route opened offline renders the app, not the landing page', async ({ browser }) => {
+  const context = await browser.newContext({ locale: 'en-US' });
+  const page = await context.newPage();
+  await page.goto('http://localhost:4311/');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  await context.setOffline(true);
+  await page.goto('http://localhost:4311/app/settings');
+  await expect(page.getByTestId('create-room')).toBeVisible();
+  expect(await page.evaluate(() => !!document.querySelector('meta[name="robots"]'))).toBe(true);
+  await context.close();
+});
