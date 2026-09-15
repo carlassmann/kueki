@@ -13,11 +13,9 @@
   margin: 0 0 20px;
   padding: 0;
   list-style: none;
-  counter-reset: install-step;
 }
 
 .install-steps li {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -30,23 +28,6 @@
 
 .install-steps li + li {
   margin-top: 8px;
-}
-
-.install-steps li::before {
-  counter-increment: install-step;
-  content: counter(install-step);
-  position: absolute;
-  top: -4px;
-  left: 30px;
-  width: 18px;
-  height: 18px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--surface-raised);
-  background: var(--primary);
-  font-size: 11px;
-  font-weight: 600;
 }
 
 .install-step-icon {

@@ -11,6 +11,8 @@ async function create(page: Page, role: 'Baby' | 'Me', name: string) {
 test('real baby + two parents: pairing, received audio packets, sound alert, network loss and recovery', async ({
   browser,
 }) => {
+  // Waiting out the shortest offline alert pushes this run past the default budget.
+  test.setTimeout(120_000);
   const babyContext = await browser.newContext({
     locale: 'en-US',
     permissions: ['microphone'],
@@ -107,6 +109,9 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
       .evaluate((element) => element.getBoundingClientRect().right === innerWidth),
   ).toBe(true);
   await expect(parent.getByTestId('wake-lock-notice')).toBeVisible();
+  // The shortest offline alert keeps the later disconnect check inside one test run.
+  await parent.getByTestId('nav-settings').click();
+  await parent.getByTestId('alert-offlineAlertMs').selectOption('30000');
   await parent.getByTestId('nav-monitor').click();
   await expect(parent.getByTestId('wake-status')).toBeVisible();
   await parent.evaluate(() => (window as any).observedWake.current.release());
@@ -184,7 +189,7 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
   await parent.screenshot({ path: 'artifacts/parent-desktop.png', fullPage: true });
   await babyContext.setOffline(true);
   await expect(parent.locator('[data-testid="activity-event"][data-kind="offline"]')).toBeVisible({
-    timeout: 25000,
+    timeout: 45000,
   });
   await parent.getByTestId('nav-monitor').click();
   await expect(nurseryCard.getByTestId('listen-toggle')).toBeDisabled();
@@ -326,6 +331,7 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
   await parent.getByTestId('nav-settings').click();
   await parent.getByTestId('manage-device').click();
   await parent.getByTestId('leave-room').click();
+  await parent.getByTestId('confirm-leave-room').click();
   await parent.goto(`/#join=${session.roomKey}`);
   await parent.getByTestId('device-name').fill('Returning caregiver');
   await parent.getByTestId('submit-room').click();
@@ -334,6 +340,7 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
   const afterRemoval = await second.getByTestId('invite-code').inputValue();
   expect(afterRemoval).not.toBe(session.roomKey);
   await second.getByTestId('reset-invitation').click();
+  await second.getByTestId('confirm-reset-invitation').click();
   await expect(second.getByTestId('invite-code')).not.toHaveValue(afterRemoval);
   const currentInvitation = await second.getByTestId('invite-code').inputValue();
   await second.screenshot({ path: 'artifacts/reset-invitation.png' });
@@ -352,9 +359,11 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
     await route.fulfill({ response });
   });
   await parent.getByTestId('reset-invitation').click();
+  await parent.getByTestId('confirm-reset-invitation').click();
   await resetHeld;
   const superseded = await second.getByTestId('invite-code').inputValue();
   await second.getByTestId('reset-invitation').click();
+  await second.getByTestId('confirm-reset-invitation').click();
   await expect(second.getByTestId('invite-code')).not.toHaveValue(superseded);
   const authoritativeInvitation = await second.getByTestId('invite-code').inputValue();
   await expect(parent.getByTestId('invite-code')).toHaveValue(authoritativeInvitation);
@@ -491,6 +500,7 @@ test('first-run layout, keyboard dialog, invalid invite and denied microphone', 
   await page.getByTestId('nav-settings').click();
   await page.getByTestId('manage-device').click();
   await page.getByTestId('leave-room').click();
+  await page.getByTestId('confirm-leave-room').click();
   await expect(page.getByTestId('create-room')).toBeVisible();
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.reload();
@@ -518,6 +528,7 @@ test('first-run layout, keyboard dialog, invalid invite and denied microphone', 
   await expect(page.getByTestId('rooms-error')).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem('kueki-session'))).toBeNull();
   await page.locator('[data-testid="forget-room"][data-room-name="Evening nursery"]').click();
+  await page.getByTestId('confirm-forget-room').click();
   await expect(
     page.locator('[data-testid="room-option"][data-room-name="Evening nursery"]'),
   ).toHaveCount(0);

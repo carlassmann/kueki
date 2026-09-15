@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Dialog } from './components/ui/dialog';
+import { Notice } from './components/ui/notice';
 import { useIntl } from './intl/setup';
 import './InvitationScanner.css';
 
@@ -12,7 +13,7 @@ export function InvitationScanner({
 }) {
   const t = useIntl();
   const video = useRef<HTMLVideoElement>(null);
-  const [error, setError] = useState('');
+  const [failure, setFailure] = useState<'' | 'camera' | 'invalid'>('');
   useEffect(() => {
     let cancelled = false;
     let stream: MediaStream | undefined;
@@ -41,7 +42,7 @@ export function InvitationScanner({
               code = new URLSearchParams(url.hash.slice(1)).get('join') || '';
             } catch {}
             if (!/^(?:[a-f0-9]{64}\.)?[A-Za-z0-9_-]{20,128}$/.test(code)) {
-              setError(t('scanner.invalid'));
+              setFailure('invalid');
               return;
             }
             cancelled = true;
@@ -52,7 +53,7 @@ export function InvitationScanner({
         if (cancelled) stop();
       } catch {
         stop();
-        if (!cancelled) setError(t('scanner.cameraUnavailable'));
+        if (!cancelled) setFailure('camera');
       }
     }
     void start();
@@ -61,12 +62,28 @@ export function InvitationScanner({
       stop();
     };
   }, [onScan]);
+  const message =
+    failure === 'camera'
+      ? t('scanner.cameraUnavailable')
+      : failure === 'invalid'
+        ? t('scanner.invalid')
+        : t('scanner.prompt');
+
   return (
     <Dialog title={t('scanner.title')} testId="scanner-dialog" close={close}>
-      <video ref={video} autoPlay muted playsInline className="invitation-camera" />
-      <p role="status" data-testid="scanner-status" data-state={error ? 'error' : 'scanning'}>
-        {error || t('scanner.prompt')}
-      </p>
+      {/* An unusable camera would otherwise leave a full-width black square behind. */}
+      {failure !== 'camera' && (
+        <video ref={video} autoPlay muted playsInline className="invitation-camera" />
+      )}
+      {failure ? (
+        <Notice role="status" data-testid="scanner-status" data-state="error">
+          {message}
+        </Notice>
+      ) : (
+        <p role="status" data-testid="scanner-status" data-state="scanning">
+          {message}
+        </p>
+      )}
     </Dialog>
   );
 }

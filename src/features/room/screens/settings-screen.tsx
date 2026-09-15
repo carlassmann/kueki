@@ -151,6 +151,17 @@ function RoomDevices({ room }: { room: ReturnType<typeof useRoom> }) {
 
   if (otherDevices.length === 0 && !room.accessNotice) return null;
 
+  // Without a device left the notice is the card's only content, so it becomes the row itself
+  // rather than a footer under an empty list that would collapse to a hairline.
+  if (otherDevices.length === 0)
+    return (
+      <SettingsGroup title={t('settings.devicesTitle')}>
+        <li className="settings-row settings-row-note" role="status">
+          {room.accessNotice}
+        </li>
+      </SettingsGroup>
+    );
+
   return (
     <SettingsGroup
       title={t('settings.devicesTitle')}

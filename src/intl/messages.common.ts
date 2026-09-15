@@ -32,7 +32,15 @@ const baseCommonMessages = messages({
   'app.switchFailed': 'Could not switch rooms.',
   'app.connectBeforeSwitch': 'Connect before switching rooms.',
   'notFound.title': 'Page not found',
+  'notFound.body': 'This page has wandered off. Your monitor is still where you left it.',
   'notFound.action': 'Open your monitor',
+  'notFound.mascotAlt': 'Kueki, dozing on a pillow',
+
+  'forgetRoom.title': 'Forget {$room}?',
+  'forgetRoom.body':
+    'This device stops remembering {$room}. The room itself keeps running, but you’ll need the invitation code to add it back here.',
+  'forgetRoom.confirm': 'Forget {$room}',
+  'forgetRoom.keep': 'Keep this room',
 
   'language.title': 'Language',
   'language.description': 'Choose the language Kueki uses.',
@@ -72,7 +80,16 @@ const deCommonMessages = translate(baseCommonMessages, {
   'app.switchFailed': 'Räume konnten nicht gewechselt werden.',
   'app.connectBeforeSwitch': 'Stelle die Verbindung her, bevor du den Raum wechselst.',
   'notFound.title': 'Seite nicht gefunden',
+  'notFound.body':
+    'Diese Seite ist abhandengekommen. Dein Monitor ist noch da, wo du ihn gelassen hast.',
   'notFound.action': 'Öffne deinen Monitor',
+  'notFound.mascotAlt': 'Kueki, dösend auf einem Kissen',
+
+  'forgetRoom.title': '{$room} vergessen?',
+  'forgetRoom.body':
+    'Dieses Gerät merkt sich {$room} nicht mehr. Der Raum selbst läuft weiter, aber du brauchst den Einladungscode, um ihn hier wieder hinzuzufügen.',
+  'forgetRoom.confirm': '{$room} vergessen',
+  'forgetRoom.keep': 'Diesen Raum behalten',
 
   'language.title': 'Sprache',
   'language.description': 'Wähle die Sprache, die Kueki verwendet.',

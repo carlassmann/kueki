@@ -35,6 +35,12 @@ const baseModalMessages = messages({
   'roomInvite.shareHint': 'Anyone with this invitation can join. Share it privately.',
   'roomInvite.reset': 'Reset invitation link',
 
+  'resetInvitation.title': 'Reset the invitation?',
+  'resetInvitation.body':
+    'The current code and link stop working right away. Anyone you already invited, but who has not joined yet, needs the new code.',
+  'resetInvitation.confirm': 'Reset invitation',
+  'resetInvitation.keep': 'Keep current invitation',
+
   'deviceSettings.title': 'Device settings',
   'deviceSettings.name': 'Device name',
   'deviceSettings.switchToParent': 'Switch to parent device',
@@ -42,6 +48,12 @@ const baseModalMessages = messages({
   'deviceSettings.switchHint': 'Switching roles pauses monitoring and stops live audio.',
   'deviceSettings.leave': 'Leave this room',
   'deviceSettings.leaveHint': 'You’ll need the invitation code to join again.',
+
+  'leaveRoom.title': 'Leave this room?',
+  'leaveRoom.body':
+    'This device loses access right away. You’ll need the invitation code to join again.',
+  'leaveRoom.confirm': 'Leave room',
+  'leaveRoom.stay': 'Stay in this room',
 
   'removeDevice.title': 'Remove {$name}?',
   'removeDevice.body':
@@ -93,6 +105,12 @@ const deModalMessages = translate(baseModalMessages, {
   'roomInvite.shareHint': 'Jede Person mit dieser Einladung kann beitreten. Teile sie privat.',
   'roomInvite.reset': 'Einladungslink zurücksetzen',
 
+  'resetInvitation.title': 'Einladung zurücksetzen?',
+  'resetInvitation.body':
+    'Der aktuelle Code und Link funktionieren sofort nicht mehr. Wer schon eingeladen ist, aber noch nicht beigetreten ist, braucht den neuen Code.',
+  'resetInvitation.confirm': 'Einladung zurücksetzen',
+  'resetInvitation.keep': 'Aktuelle Einladung behalten',
+
   'deviceSettings.title': 'Geräteeinstellungen',
   'deviceSettings.name': 'Gerätename',
   'deviceSettings.switchToParent': 'Zum Elterngerät wechseln',
@@ -100,6 +118,12 @@ const deModalMessages = translate(baseModalMessages, {
   'deviceSettings.switchHint': 'Ein Rollenwechsel pausiert die Überwachung und beendet Live-Audio.',
   'deviceSettings.leave': 'Diesen Raum verlassen',
   'deviceSettings.leaveHint': 'Du brauchst den Einladungscode, um wieder beizutreten.',
+
+  'leaveRoom.title': 'Diesen Raum verlassen?',
+  'leaveRoom.body':
+    'Dieses Gerät verliert sofort den Zugriff. Du brauchst den Einladungscode, um wieder beizutreten.',
+  'leaveRoom.confirm': 'Raum verlassen',
+  'leaveRoom.stay': 'In diesem Raum bleiben',
 
   'removeDevice.title': '{$name} entfernen?',
   'removeDevice.body':

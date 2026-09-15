@@ -185,6 +185,39 @@ export function RoomsPopover({
   );
 }
 
+export function ForgetRoomConfirmation({
+  room,
+  onCancel,
+  onConfirm,
+}: {
+  room: Session;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const t = useIntl();
+  return (
+    <Dialog
+      title={t('forgetRoom.title', { room: room.roomName })}
+      testId="forget-room-dialog"
+      close={onCancel}
+    >
+      <p>{t('forgetRoom.body', { room: room.roomName })}</p>
+      <Button
+        variant="primary"
+        full
+        tone="danger"
+        data-testid="confirm-forget-room"
+        onClick={onConfirm}
+      >
+        {t('forgetRoom.confirm', { room: room.roomName })}
+      </Button>
+      <Button variant="secondary" full data-testid="keep-room" onClick={onCancel}>
+        {t('forgetRoom.keep')}
+      </Button>
+    </Dialog>
+  );
+}
+
 export function PrivacyModal({ onClose }: { onClose: () => void }) {
   const t = useIntl();
   return (

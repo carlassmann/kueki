@@ -30,9 +30,13 @@
 }
 
 [data-ui='dialog-content'] h2 {
-  max-width: 12ch;
+  /* The close button overlaps the heading's corner, so the title keeps clear of it. */
+  max-width: 18ch;
+  padding-right: 48px;
   margin-bottom: 18px;
   font-size: 32px;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 [data-ui='dialog-content'] p {
@@ -75,6 +79,12 @@
     margin: auto auto 0;
     border-radius: 28px 28px 0 0;
     animation: sheet-in 380ms var(--spring);
+    transition: transform 320ms var(--spring);
+  }
+
+  [data-ui='dialog'][data-dragging='true'] {
+    animation: none;
+    transition: none;
   }
 
   [data-ui='dialog-content'] {

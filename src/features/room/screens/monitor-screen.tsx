@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import {
   AlertIcon,
   AlertMutedIcon,
@@ -361,6 +362,9 @@ function Sensitivity({
         step="1"
         disabled={disabled}
         value={value}
+        style={
+          { '--slider-progress': (value - 1) / (SENSITIVITY_KEYS.length - 1) } as CSSProperties
+        }
         onChange={(event) => onChange(Number(event.target.value))}
       />
       {id === 'sensitivity' && (

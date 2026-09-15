@@ -35,7 +35,9 @@ export function RoomHeader({
         {ROOM_NAVIGATION.map(([to, testId, label, Icon]) => (
           <Link key={to} to={to} activeOptions={{ exact: true }} data-testid={testId}>
             <Icon size={19} />
-            <span>{t(label)}</span>
+            {/* The label is repeated as a data attribute so CSS can reserve its
+                bold width and keep the item from resizing when it turns active. */}
+            <span data-label={t(label)}>{t(label)}</span>
           </Link>
         ))}
       </nav>

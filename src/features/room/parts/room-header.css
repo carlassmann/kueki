@@ -1,7 +1,12 @@
 .room-tools {
+  /* Every trailing control claims the same square hit area, so glyphs of very
+     different sizes (7px dot, 16px sun, 18px plus) share one optical center. */
+  --room-control-size: 44px;
+  --room-control-gap: 6px;
+
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--room-control-gap);
 }
 
 .room-header {
@@ -63,6 +68,20 @@
     transform 240ms var(--spring);
 }
 
+.room-navigation a span {
+  display: grid;
+  justify-items: center;
+}
+
+/* A hidden copy at the active weight holds the label's widest width, so the nav
+   never reflows while navigating. */
+.room-navigation a span::after {
+  content: attr(data-label);
+  height: 0;
+  font-weight: 600;
+  visibility: hidden;
+}
+
 .room-navigation a:active {
   transform: scale(0.96);
 }
@@ -83,8 +102,14 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  /* The dark pill has to carry the active state on its own, so it stays well
+     above 3:1 against the nav rather than blending into it. */
   .room-navigation a[aria-current='page'] {
-    background: linear-gradient(180deg, #2b3343, #242b39);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--ink) 40%, var(--surface-raised)),
+      color-mix(in srgb, var(--ink) 34%, var(--surface-raised))
+    );
   }
 }
 
@@ -127,11 +152,9 @@
 }
 
 @media (max-width: 680px) {
-  .room-header .room-tools {
-    gap: 6px;
-  }
   .room-header .room-tools .invite-device-button {
-    width: 44px;
+    width: var(--room-control-size);
+    height: var(--room-control-size);
     padding: 0;
     border-radius: 50%;
     background: color-mix(in srgb, var(--ink) 6%, transparent);

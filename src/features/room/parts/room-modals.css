@@ -1,6 +1,12 @@
 .invite-actions {
   display: grid;
+  margin-top: 16px;
   gap: 10px;
+}
+
+/* Resetting the invitation is a different intent from sharing it, so it stands apart. */
+.reset-invitation {
+  margin-top: 18px;
 }
 
 .setting-detail {

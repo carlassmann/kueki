@@ -4,17 +4,18 @@ import { App, AppScreen, LandingScreen } from './App';
 import { readSession } from './sessions';
 import { useIntl } from './intl/setup';
 import { buttonLook } from './components/ui/button';
+import { KuekiMascot } from './KuekiMascot';
 
 function NotFoundScreen() {
   const t = useIntl();
   return (
-    <main className="app-onboarding">
-      <section>
-        <h1>{t('notFound.title')}</h1>
-        <Link to="/app" {...buttonLook({ variant: 'secondary' })}>
-          {t('notFound.action')}
-        </Link>
-      </section>
+    <main className="not-found" data-testid="not-found">
+      <KuekiMascot className="not-found-mascot" state="paused" alt={t('notFound.mascotAlt')} />
+      <h1>{t('notFound.title')}</h1>
+      <p>{t('notFound.body')}</p>
+      <Link to="/app" {...buttonLook({ variant: 'primary' })}>
+        {t('notFound.action')}
+      </Link>
     </main>
   );
 }

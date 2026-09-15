@@ -21,7 +21,7 @@ import {
   ErrorNotice,
   EventNotice,
 } from './parts/room-notices';
-import { DeviceSettingsModal, InvitationModal } from './parts/room-modals';
+import { DeviceSettingsModal, InvitationModal, LeaveRoomConfirmation } from './parts/room-modals';
 import { RoomProvider } from './room-context';
 import { SENSITIVITY_THRESHOLDS } from '../../noise';
 import { recentEvent } from './lib/recent-event';
@@ -80,6 +80,8 @@ export function Room({
   const connected = connection === 'Connected';
   const [invitation, setInvitation] = useState(session.roomKey);
   const [accessNotice, setAccessNotice] = useState('');
+  // Actions offered inside a dialog return their failure instead of showing it
+  // in the room notice, which the dialog backdrop covers.
   async function manageAccess(target?: string) {
     setBusy(true);
     setError('');
@@ -90,8 +92,9 @@ export function Room({
       });
       setCopied('');
       setAccessNotice(target ? t('room.deviceRemoved') : t('room.invitationReset'));
+      return '';
     } catch (error) {
-      setError(errorMessage(error));
+      return errorMessage(error);
     } finally {
       setBusy(false);
     }
@@ -328,8 +331,9 @@ export function Room({
     try {
       await request('role', { ...session, role: isBaby ? 'parent' : 'baby' });
       save({ ...session, role: isBaby ? 'parent' : 'baby' });
+      return '';
     } catch (error) {
-      setError(errorMessage(error));
+      return errorMessage(error);
     } finally {
       setBusy(false);
     }
@@ -339,8 +343,9 @@ export function Room({
     try {
       if (connection !== 'Access removed') await request('leave', session);
       save(null);
+      return '';
     } catch (error) {
-      setError(errorMessage(error));
+      return errorMessage(error);
     } finally {
       setBusy(false);
     }
@@ -349,8 +354,9 @@ export function Room({
     try {
       await navigator.clipboard.writeText(value);
       setCopied(label);
+      return '';
     } catch {
-      setError(t('common.copyUnavailable'));
+      return t('room.copyUnavailable');
     }
   }
 
@@ -444,7 +450,14 @@ export function Room({
                 {t('room.screenWakeUnavailable')}
               </Notice>
             )}
-            {!connected && <ConnectionNotice connection={connection} />}
+            {!connected && (
+              <ConnectionNotice
+                connection={connection}
+                onLeave={
+                  connection === 'Access removed' ? () => setModal('leave-removed') : undefined
+                }
+              />
+            )}
             {error && <ErrorNotice error={error} onDismiss={() => setError('')} />}
             {!isBaby && connected && latestEvent && (
               <EventNotice
@@ -484,7 +497,7 @@ export function Room({
               listenTo,
               openInvitation: () => setModal('invite'),
               openSettings: () => setModal('settings'),
-              removeDevice: (deviceId) => void manageAccess(deviceId),
+              removeDevice: (deviceId) => void manageAccess(deviceId).then(setError),
               resumeAudio,
               stopListening: stopListeningTo,
               testNotification,
@@ -509,18 +522,21 @@ export function Room({
           invitation={invitation}
           isBaby={isBaby}
           onClose={() => setModal('')}
-          onCopy={(value, label) => void copy(value, label)}
-          onReset={() => void manageAccess()}
+          onCopy={copy}
+          onReset={() => manageAccess()}
         />
       )}
       {modal === 'settings' && (
         <DeviceSettingsModal
           busy={busy}
           session={session}
-          onChangeRole={() => void changeRole()}
+          onChangeRole={changeRole}
           onClose={() => setModal('')}
-          onLeave={() => void leave()}
+          onLeave={leave}
         />
+      )}
+      {modal === 'leave-removed' && (
+        <LeaveRoomConfirmation busy={busy} onCancel={() => setModal('')} onConfirm={leave} />
       )}
     </main>
   );

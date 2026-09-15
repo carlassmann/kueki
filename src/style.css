@@ -59,10 +59,12 @@
   box-sizing: border-box;
 }
 
+/* dvh, not %: a percentage height stops at the content, leaving the body gradient
+   short of the viewport and a seam across the rest of the page. */
 html,
 body,
 #root {
-  min-height: 100%;
+  min-height: 100dvh;
 }
 
 html,
@@ -181,6 +183,32 @@ button svg {
   pointer-events: none;
 }
 
+/* App chrome should feel like an app: long-pressing a label must not select text or
+   raise the iOS callout menu. The marketing landing page is deliberately excluded so
+   visitors can still quote it. Popovers and tooltips portal outside .application,
+   so they are listed separately. */
+.application,
+.rooms-popover,
+[data-ui='tooltip'] {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Selection back on where people genuinely copy text. Add `.selectable` to anything
+   else worth copying — an invitation link, a diagnostic value, an id. */
+input,
+textarea,
+[contenteditable]:not([contenteditable='false']),
+[data-ui='code'],
+[data-ui='notice'],
+.event,
+.selectable {
+  user-select: text;
+  -webkit-user-select: text;
+  -webkit-touch-callout: default;
+}
+
 ::selection {
   color: var(--ink);
   background: color-mix(in srgb, var(--primary) 32%, transparent);
@@ -223,9 +251,14 @@ input::placeholder {
 }
 
 fieldset {
-  margin: 0 0 22px;
+  margin: 0 0 20px;
   padding: 0;
   border: 0;
+}
+
+/* Labels carry their gap below them; a fieldset needs one above to keep the form rhythm. */
+* + fieldset {
+  margin-top: 20px;
 }
 
 legend {

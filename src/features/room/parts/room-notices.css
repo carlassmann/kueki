@@ -1,11 +1,30 @@
 .connection-indicator {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--room-control-gap, 6px);
   color: var(--muted);
+}
+
+/* The tooltip triggers are the hit areas, so they carry the shared square size
+   and center their glyph the same way the invite button does. */
+.connection-indicator > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--room-control-size, 44px);
+  height: var(--room-control-size, 44px);
 }
 
 .wake-status {
   display: inline-flex;
   align-items: center;
+}
+
+/* The leave action needs the notice's full width, so the message keeps its own line. */
+[data-testid='connection-notice'] {
+  flex-wrap: wrap;
+}
+
+.notice-action {
+  flex-basis: 100%;
 }

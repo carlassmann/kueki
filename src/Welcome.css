@@ -85,6 +85,7 @@
   color: var(--muted);
   font-size: 13px;
   font-weight: 600;
+  text-align: right;
 }
 
 .kueki-hover-hint {
@@ -286,10 +287,19 @@
   }
   .landing-mascot-state figcaption {
     margin-top: 0;
+    /* The card's deeply rounded bottom-right corner curves in under the caption. Right
+       aligning it pins every line to the same edge, and this inset keeps that edge clear
+       of the curve even when a longer translation wraps. */
+    padding-right: 32px;
     font-size: 11px;
   }
   .welcome-content {
     padding: 0 4px;
+  }
+  /* The landing page gets its gutters from .app-shell, but the onboarding form stretches
+     edge to edge, so it carries its own — matching the app chrome's 16px inset. */
+  .app-onboarding .welcome-content {
+    padding: 0 16px;
   }
   .welcome-content h2 {
     max-width: 22ch;

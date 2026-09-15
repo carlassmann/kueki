@@ -14,7 +14,9 @@
   border-bottom: var(--hairline) solid var(--line);
 }
 
+/* The product name stays whole; a long room name in the switcher truncates instead. */
 .brand {
+  flex: none;
   min-width: 0;
   overflow: hidden;
   display: flex;
@@ -33,7 +35,8 @@
 }
 
 .shell-actions {
-  flex: none;
+  min-width: 0;
+  flex: 0 1 auto;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -42,8 +45,10 @@
 footer {
   min-height: 62px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 4px 20px;
   border-top: var(--hairline) solid var(--line);
   color: var(--muted);
 }
@@ -86,9 +91,6 @@ footer a {
 }
 
 .app-shell.application {
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
   position: fixed;
   inset: var(--visual-viewport-top, 0) 0 auto;
   width: 100%;
@@ -149,12 +151,29 @@ footer a {
   max-width: none;
 }
 
-.application input,
-.application [data-ui='code'],
-.application .event,
-.application p {
-  -webkit-user-select: text;
-  user-select: text;
+.not-found {
+  min-height: 60dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0 calc(40px + env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+.not-found .not-found-mascot {
+  width: min(100%, 300px);
+  height: 230px;
+  margin-bottom: -8px;
+}
+
+.not-found h1 {
+  font-size: 38px;
+}
+
+.not-found p {
+  max-width: 38ch;
+  margin: 14px 0 26px;
 }
 
 [data-sonner-toaster][data-sonner-theme] {
@@ -248,15 +267,19 @@ footer a {
   .app-onboarding .welcome-content h2 {
     font-size: 36px;
   }
+  .not-found h1 {
+    font-size: 34px;
+  }
+  .not-found .not-found-mascot {
+    height: 190px;
+  }
 }
 
 @media (max-width: 390px) {
   .app-shell {
     width: calc(100% - 24px);
   }
-  .application > .topbar,
-  .application .room-header,
-  .application .room-content {
-    width: calc(100% - 24px);
+  .topbar {
+    gap: 12px;
   }
 }

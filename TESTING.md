@@ -96,7 +96,6 @@ The same lifecycle supplies a synthetic waiting-worker event to verify that the 
 
 Desktop light/dark and mobile layouts were visually reviewed. Unknown routes display a recovery link back to the monitor. TypeScript and the production build passed. These changes were checked locally, not deployed.
 
-
 ## Saved rooms and editing — September 9
 
 TypeScript, the production build, the Bun noise test, and workerd integration tests passed. All six Chromium/WebKit browser tests passed in 39.1 seconds.
@@ -105,8 +104,20 @@ The browser lifecycle switches rooms during live audio, verifies playback stops,
 
 The workerd checks cover parent-only room renaming, device rename authorization and room isolation, deactivation retaining membership while disabling push, rejection of late subscription requests, reactivation and subscription attachment, and baby deactivation clearing monitoring and online status. Push delivery after switching on a physical phone remains a deployment check.
 
-
 The camera invitation test decodes a real QR from a synthetic video stream, verifies code entry and track shutdown after scanning and cancellation, and checks permission denial leaves manual entry available. Chromium passed in 2.2 seconds. Physical iPhone camera scanning remains unverified.
 
-
 App scrolling: all seven browser tests passed in 38.3 seconds. The WebKit mobile check verifies setup has no document or content overflow at 375×812, then checks form controls remain reachable at 375×420 with document scroll at zero and the header fixed. Native iOS rubber-band gestures still need a physical-device check.
+
+## Mobile polish pass, September 15, 2026
+
+A device QA round on an iPhone found eight presentation defects; a parallel exploratory sweep through Chromium at 320, 393 and 768 pixels, in English and German, light and dark, found seventeen more. Each was reproduced with measured element rectangles and computed styles before the fix and re-measured after it.
+
+Fixed from the device round: the German mascot caption colliding with the card's rounded corner, the create-room form's asymmetric gutters, a focused field hidden behind the on-screen keyboard, text selection enabled across app chrome, the three trailing header controls sitting on different optical centers, bottom navigation items resizing as the active tab changed, leaving a room without confirmation, and the onboarding screen's narrow horizontal padding. Dialogs gained drag-to-dismiss, and the install sheet lost its numbered badges.
+
+Fixed from the sweep: a clipboard failure that rendered its error underneath the dialog backdrop, resetting an invitation and forgetting a saved room without confirmation, an access-removed notice that told the user to leave without offering the action, dropdown chevrons detached from their controls on mobile, German device rows crushing the device name, an empty device list left as a stray hairline, dialog titles colliding with the close button in German at 320 pixels, a pure-white QR code in dark mode, an active navigation tab at 1.26:1 contrast in dark mode, the scanner's black void on camera denial, the landing page scrolling horizontally at 320 pixels, and an unfinished 404 screen whose background stopped partway down.
+
+Real testing found one product bug behind a failing browser test: the Worker deliberately returns 404 for the app shell it serves to app routes, but the service worker still precached that path, so installation rejected and the production build registered no service worker at all. Offline reload and background push depend on it. The precache list now skips it.
+
+The browser suite also carried a stale expectation: an earlier change raised the offline alert to a minute while the test still waited twenty-five seconds. The test now selects the thirty-second alert and waits accordingly.
+
+TypeScript, the production build, the Bun noise test, the workerd integration test and all seven browser tests pass.

@@ -5,6 +5,9 @@
 }
 
 [data-ui='select'] select {
+  /* The chevron sits at the wrapper's right edge, so the control has to reach it even when a
+     stacked row stretches the wrapper wider than the selected option. */
+  width: 100%;
   min-height: 44px;
   padding: 8px 34px 8px 12px;
   border: 0;

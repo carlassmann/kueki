@@ -185,7 +185,9 @@
   height: 48px;
 }
 
+/* A device name is free text, so a long unbroken one must not push the card sideways. */
 .device-heading h3 {
+  overflow-wrap: anywhere;
   margin-bottom: 5px;
 }
 
@@ -200,10 +202,17 @@
   gap: 12px;
 }
 
+/* German labels wrap to two lines, so the buttons share the tallest height and
+   the row's width instead of floating at different sizes. */
 .device-actions {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 6px;
+}
+
+.device-actions > * {
+  min-width: 0;
+  flex: 1;
 }
 
 .mute-toggle[aria-pressed='true'] {

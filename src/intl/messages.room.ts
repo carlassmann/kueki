@@ -33,6 +33,8 @@ const baseRoomMessages = messages({
   'room.screenWakeAction': 'Keep screen awake',
   'room.deviceRemoved': 'Device removed. Previous invitation links no longer work.',
   'room.invitationReset': 'Invitation reset. Previous links no longer work.',
+  'room.copyUnavailable':
+    'Copy is unavailable here. Select the invitation code above and copy it yourself.',
   'room.micBlocked': 'Microphone access is blocked. Allow it in browser settings, then try again.',
 
   'notice.accessRemoved':
@@ -42,6 +44,7 @@ const baseRoomMessages = messages({
   'notice.connectionUnavailable':
     'Connection unavailable. Monitoring alerts cannot reach you. Check your baby and your connection; Kueki is reconnecting.',
   'notice.dismiss': 'Dismiss notification',
+  'notice.leaveRoom': 'Leave this room',
 
   'event.noise.title': 'Noise detected',
   'event.paused.title': 'Monitoring paused',
@@ -206,6 +209,8 @@ const deRoomMessages = translate(baseRoomMessages, {
   'room.screenWakeAction': 'Bildschirm wach halten',
   'room.deviceRemoved': 'Gerät entfernt. Frühere Einladungslinks funktionieren nicht mehr.',
   'room.invitationReset': 'Einladung zurückgesetzt. Frühere Links funktionieren nicht mehr.',
+  'room.copyUnavailable':
+    'Kopieren ist hier nicht möglich. Markiere den Einladungscode oben und kopiere ihn selbst.',
   'room.micBlocked':
     'Der Mikrofonzugriff ist blockiert. Erlaube ihn in den Browsereinstellungen und versuch es dann erneut.',
 
@@ -216,6 +221,7 @@ const deRoomMessages = translate(baseRoomMessages, {
   'notice.connectionUnavailable':
     'Verbindung nicht verfügbar. Hinweise können dich nicht erreichen. Prüfe dein Baby und deine Verbindung; Kueki verbindet sich erneut.',
   'notice.dismiss': 'Hinweis schließen',
+  'notice.leaveRoom': 'Diesen Raum verlassen',
 
   'event.noise.title': 'Geräusch erkannt',
   'event.paused.title': 'Überwachung pausiert',

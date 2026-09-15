@@ -1,4 +1,4 @@
-import { useCallback, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { BabyIcon, BackIcon, ForwardIcon, InviteLinkIcon, ParentIcon } from './icons';
 import { InvitationScanner } from './InvitationScanner';
@@ -11,6 +11,27 @@ import { Button } from './components/ui/button';
 import './Welcome.css';
 import { Notice } from './components/ui/notice';
 import { codeLook } from './components/ui/text';
+
+function scrollFocusedFieldIntoView() {
+  const field = document.activeElement;
+  if (field instanceof HTMLInputElement)
+    field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+// iOS Safari shrinks the visual viewport when the on-screen keyboard opens, but it leaves the
+// focused field where it was, so it can end up hidden behind the keyboard. Re-centering on every
+// viewport resize also covers the keyboard changing height (suggestion bar, emoji panel). The app
+// shell resizes itself from the same event, so wait a frame for its new height before scrolling.
+function useFieldVisibleAboveKeyboard() {
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const recenterAfterLayout = () => requestAnimationFrame(scrollFocusedFieldIntoView);
+    viewport.addEventListener('resize', recenterAfterLayout);
+    return () => viewport.removeEventListener('resize', recenterAfterLayout);
+  }, []);
+}
+
 export function Welcome({
   onJoin,
   appMode = false,
@@ -19,6 +40,7 @@ export function Welcome({
   appMode?: boolean;
 }) {
   const t = useIntl();
+  useFieldVisibleAboveKeyboard();
   const route = useLocation();
   const navigate = useNavigate();
   const invited = new URLSearchParams(route.hash.replace(/^#/, '')).get('join') || '';
@@ -139,6 +161,7 @@ export function Welcome({
                     required
                     data-testid="invitation-code"
                     {...codeLook}
+                    onFocus={scrollFocusedFieldIntoView}
                     value={roomKey}
                     onChange={(e) => setRoomKey(e.target.value)}
                     placeholder={t('welcome.invitationPlaceholder')}
@@ -166,6 +189,7 @@ export function Welcome({
                   required
                   maxLength={40}
                   data-testid="room-name"
+                  onFocus={scrollFocusedFieldIntoView}
                   value={roomName}
                   onChange={(e) => setRoomName(e.target.value)}
                 />
@@ -201,6 +225,7 @@ export function Welcome({
               <input
                 maxLength={40}
                 data-testid="device-name"
+                onFocus={scrollFocusedFieldIntoView}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={

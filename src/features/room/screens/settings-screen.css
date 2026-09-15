@@ -19,8 +19,11 @@
   border-radius: var(--radius-sm);
 }
 
+/* A single clamped column: without it, a wide row (device name plus its two
+   buttons) stretches the auto track and pushes every group past the viewport. */
 .settings {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 26px;
   padding-top: 6px;
 }
@@ -106,6 +109,12 @@
 .settings-row-text > span {
   display: block;
   margin-top: 2px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.settings-row-note {
   color: var(--muted);
   font-size: 14px;
   line-height: 1.45;
@@ -213,6 +222,17 @@
     align-items: stretch;
     flex-direction: column;
     gap: 10px;
+  }
+
+  /* German action labels leave the device name a few pixels, so the buttons take their own line. */
+  .device-row {
+    flex-wrap: wrap;
+  }
+  .device-row .settings-row-text {
+    flex-basis: 160px;
+  }
+  .device-row-actions {
+    margin-left: auto;
   }
 
   .settings-group-title,

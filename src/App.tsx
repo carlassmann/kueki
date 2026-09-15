@@ -8,7 +8,7 @@ import { Room, SettingsLinkRow } from './features/room';
 import { ApiError, request } from './connection';
 import type { Session } from './protocol';
 import { readSession, readRooms, sessionsEqual, storeActive, storeRooms } from './sessions';
-import { InvitationModal, PrivacyModal, RoomsPopover } from './AppModals';
+import { ForgetRoomConfirmation, InvitationModal, PrivacyModal, RoomsPopover } from './AppModals';
 import { PrivacyIcon } from './icons';
 import { useIntl } from './intl/setup';
 import { LanguageSelect } from './LanguageSelect';
@@ -46,6 +46,7 @@ export function App() {
   const [rooms, setRooms] = useState(readRooms);
   const [modal, setModal] = useState<AppModal>('');
   const [switching, setSwitching] = useState(false);
+  const [roomToForget, setRoomToForget] = useState<Session | null>(null);
   const [switchError, setSwitchError] = useState('');
   const route = useLocation();
   const navigate = useNavigate();
@@ -147,6 +148,9 @@ export function App() {
     void navigate({ to: '/app', replace: true, hash: '' });
     setSession(value);
   }
+  function forgetRoom(room: Session) {
+    setRooms((current) => storeRooms(current.filter((saved) => saved.deviceId !== room.deviceId)));
+  }
   const roomSwitcher = (
     <RoomsPopover
       activeDeviceId={session?.deviceId}
@@ -157,11 +161,7 @@ export function App() {
       onActivate={activate}
       onAdd={addRoom}
       onOpen={() => setSwitchError('')}
-      onForget={(room) =>
-        setRooms((current) =>
-          storeRooms(current.filter((saved) => saved.deviceId !== room.deviceId)),
-        )
-      }
+      onForget={setRoomToForget}
     />
   );
   return (
@@ -238,6 +238,16 @@ export function App() {
               onDismiss={dismissInvitation}
             />
           )}
+        {roomToForget && (
+          <ForgetRoomConfirmation
+            room={roomToForget}
+            onCancel={() => setRoomToForget(null)}
+            onConfirm={() => {
+              forgetRoom(roomToForget);
+              setRoomToForget(null);
+            }}
+          />
+        )}
         {modal === 'privacy' && <PrivacyModal onClose={() => setModal('')} />}
         {pwa.installGuideOpen && <InstallGuideDialog pwa={pwa} />}
       </div>

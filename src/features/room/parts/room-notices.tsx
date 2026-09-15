@@ -57,7 +57,13 @@ export function ConnectionIndicator({
   );
 }
 
-export function ConnectionNotice({ connection }: { connection: ConnectionStatus }) {
+export function ConnectionNotice({
+  connection,
+  onLeave,
+}: {
+  connection: ConnectionStatus;
+  onLeave?: () => void;
+}) {
   const t = useIntl();
   const message =
     connection === 'Access removed'
@@ -67,9 +73,26 @@ export function ConnectionNotice({ connection }: { connection: ConnectionStatus 
         : t('notice.connectionUnavailable');
 
   return (
-    <Notice role="alert" data-testid="connection-notice" data-status={CONNECTION_CODES[connection]}>
+    <Notice
+      as="div"
+      role="alert"
+      data-testid="connection-notice"
+      data-status={CONNECTION_CODES[connection]}
+    >
       <ConnectionIcon size={20} />
-      {message}
+      <span>{message}</span>
+      {onLeave && (
+        <Button
+          variant="secondary"
+          full
+          tone="danger"
+          className="notice-action"
+          data-testid="notice-leave-room"
+          onClick={onLeave}
+        >
+          {t('notice.leaveRoom')}
+        </Button>
+      )}
     </Notice>
   );
 }
