@@ -12,23 +12,28 @@ import './Welcome.css';
 import { Notice } from './components/ui/notice';
 import { codeLook } from './components/ui/text';
 
+// The app shell is sized to the visual viewport, so the bottom edge of the scroll container is the
+// top of the keyboard. 'nearest' therefore scrolls by the smallest amount that clears the keyboard
+// and does nothing at all while the field is already visible, which is what keeps this from
+// flickering. Instant, because iOS fires a resize per keyframe of the keyboard animation and a
+// smooth scroll would be restarted by each one.
 function scrollFocusedFieldIntoView() {
   const field = document.activeElement;
   if (field instanceof HTMLInputElement)
-    field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    field.scrollIntoView({ block: 'nearest', behavior: 'instant' });
 }
 
 // iOS Safari shrinks the visual viewport when the on-screen keyboard opens, but it leaves the
-// focused field where it was, so it can end up hidden behind the keyboard. Re-centering on every
+// focused field where it was, so it can end up hidden behind the keyboard. Correcting on every
 // viewport resize also covers the keyboard changing height (suggestion bar, emoji panel). The app
 // shell resizes itself from the same event, so wait a frame for its new height before scrolling.
 function useFieldVisibleAboveKeyboard() {
   useEffect(() => {
     const viewport = window.visualViewport;
     if (!viewport) return;
-    const recenterAfterLayout = () => requestAnimationFrame(scrollFocusedFieldIntoView);
-    viewport.addEventListener('resize', recenterAfterLayout);
-    return () => viewport.removeEventListener('resize', recenterAfterLayout);
+    const correctAfterLayout = () => requestAnimationFrame(scrollFocusedFieldIntoView);
+    viewport.addEventListener('resize', correctAfterLayout);
+    return () => viewport.removeEventListener('resize', correctAfterLayout);
   }, []);
 }
 
