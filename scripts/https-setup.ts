@@ -55,7 +55,11 @@ openssl([
   '.certs/ca.crt',
   '-CAkey',
   '.certs/ca.key',
+  // openssl derives the serial path from the CA name, which lands on `.srl` in the repo root
+  // because the directory itself starts with a dot. Name it explicitly instead.
   '-CAcreateserial',
+  '-CAserial',
+  '.certs/ca.srl',
   '-out',
   '.certs/server.crt',
   '-days',
