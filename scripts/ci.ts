@@ -16,10 +16,12 @@ const SERVICES = [
   { name: 'https', url: 'https://127.0.0.1:4312/' },
 ];
 
-let deadline = Date.now() + TIMEOUT_MS;
+let deadline = 0;
 
 function capture(command: string[]) {
   const result = spawnSync(command[0], command.slice(1), { cwd: ROOT, encoding: 'utf8' });
+  // A command that never launched has no stderr to quote, so its own error is the only report.
+  if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(result.stderr.trim() || `${command[0]} failed`);
   return result.stdout.trim();
 }
@@ -58,32 +60,31 @@ async function waitForServices() {
   for (const { name, url } of SERVICES) {
     process.stdout.write(`\n── Wait for ${name} ──\n\n`);
     const until = Date.now() + 60_000;
-    while (Date.now() < until) {
-      const reachable = spawnSync('curl', ['-ksf', '-o', '/dev/null', url], { cwd: ROOT });
-      if (reachable.status === 0) break;
-      await Bun.sleep(1000);
+    while (spawnSync('curl', ['-ksf', '-o', '/dev/null', url], { cwd: ROOT }).status !== 0) {
       // Another branch's workspace holding the port is the usual cause; `work down -a` clears it.
       if (Date.now() >= until)
         throw new Error(
           `${name} never answered on ${url}. Stop other workspaces with: work down -a`,
         );
+      await Bun.sleep(1000);
     }
     process.stdout.write(`ready: ${url}\n`);
   }
 }
 
-/** The preview Worker is a separate script, so its Durable Objects and rate limiter are its own
-    and the suite can create rooms without touching what kueki.app serves. */
-/** Cloudflare does not generate preview URLs for Workers that implement a Durable Object, so a
-    branch gets its own Worker script instead of a preview of the production one. That also keeps
-    its rooms out of production storage. */
+const previewWorkerFor = (pullRequest: string) => `kueki-pr-${pullRequest}`;
+
+/** Cloudflare generates no preview URLs for a Worker that implements a Durable Object, so a pull
+    request gets its own Worker script rather than a preview of the production one. Being a separate
+    script also gives it its own Durable Objects and rate limiter, so the suite can create rooms
+    without touching what kueki.app serves. */
 function previewWorkerName() {
   const pullRequest = spawnSync('gh', ['pr', 'view', '--json', 'number', '--jq', '.number'], {
     cwd: ROOT,
     encoding: 'utf8',
   });
   const number = pullRequest.status === 0 ? pullRequest.stdout.trim() : '';
-  return number ? `kueki-pr-${number}` : 'kueki-preview';
+  return number ? previewWorkerFor(number) : 'kueki-preview';
 }
 
 function deployPreviewWorker(name: string) {
@@ -111,7 +112,7 @@ function deleteClosedPreviewWorkers() {
   );
   if (closed.status !== 0) return;
   for (const number of closed.stdout.split('\n').filter(Boolean)) {
-    const name = `kueki-pr-${number}`;
+    const name = previewWorkerFor(number);
     const deleted = spawnSync('bunx', ['wrangler', 'delete', '--name', name, '--force'], {
       cwd: ROOT,
       encoding: 'utf8',
@@ -145,43 +146,60 @@ function reportFailure(testedSha: string) {
   if (reported.status !== 0) process.stderr.write(`\nPush ${testedSha} to report the failure.\n`);
 }
 
-async function main() {
-  let testedSha: string | undefined;
-  try {
-    requireSignoffExtension();
-    testedSha = capture(['git', 'rev-parse', 'HEAD']);
-    requireTestedState(testedSha);
-    deadline = Date.now() + TIMEOUT_MS;
+/** Everything that has to hold before the suite is worth starting. A failure here says nothing
+    about the commit, which is why it happens outside the block that reports one. */
+function prepare() {
+  requireSignoffExtension();
+  const testedSha = capture(['git', 'rev-parse', 'HEAD']);
+  requireTestedState(testedSha);
+  deadline = Date.now() + TIMEOUT_MS;
 
-    run('Install dependencies', ['bun', 'install', '--frozen-lockfile']);
-    run('Push keys', ['bun', 'run', 'setup']);
-    run('Certificate authority', ['bun', 'run', 'setup:https']);
-    requireTestedState(testedSha);
-
-    run('Types', ['bun', 'run', 'check']);
-    run('Production build', ['bun', 'run', 'build']);
-    run('Unit and Worker tests', ['bun', 'run', 'test']);
-
-    run('Install browsers', ['bunx', 'playwright', 'install', 'chromium', 'webkit']);
-    startServices();
-    await waitForServices();
-    run('Browser suite', ['bun', 'run', 'test:e2e']);
-
-    const previewName = previewWorkerName();
-    const previewOrigin = deployPreviewWorker(previewName);
-    await waitForPreview(previewOrigin);
-    run('Deployment suite', ['bunx', 'playwright', 'test'], { KUEKI_E2E_ORIGIN: previewOrigin });
-    deleteClosedPreviewWorkers();
-
-    // Signing a state that is no longer HEAD would attest to code nobody tested.
-    requireTestedState(testedSha);
-    run('Sign off', ['gh', 'signoff', '--commit', testedSha]);
-    process.stdout.write(`\n✓ Local CI passed and signed off ${testedSha}\n`);
-  } catch (error) {
-    if (testedSha) reportFailure(testedSha);
-    process.stderr.write(`\n✗ ${error instanceof Error ? error.message : String(error)}\n`);
-    process.exitCode = 1;
-  }
+  run('Install dependencies', ['bun', 'install', '--frozen-lockfile']);
+  run('Push keys', ['bun', 'run', 'setup']);
+  run('Certificate authority', ['bun', 'run', 'setup:https']);
+  requireTestedState(testedSha);
+  return testedSha;
 }
 
-await main();
+async function runSuite(testedSha: string) {
+  run('Types', ['bun', 'run', 'check']);
+  run('Production build', ['bun', 'run', 'build']);
+  run('Unit and Worker tests', ['bun', 'run', 'test']);
+
+  run('Install browsers', ['bunx', 'playwright', 'install', 'chromium', 'webkit']);
+  startServices();
+  await waitForServices();
+  // An exported KUEKI_E2E_ORIGIN would quietly reduce this to the deployment-shaped specs.
+  run('Browser suite', ['bun', 'run', 'test:e2e'], { KUEKI_E2E_ORIGIN: '' });
+
+  const previewOrigin = deployPreviewWorker(previewWorkerName());
+  await waitForPreview(previewOrigin);
+  run('Deployment suite', ['bun', 'run', 'test:e2e'], { KUEKI_E2E_ORIGIN: previewOrigin });
+  deleteClosedPreviewWorkers();
+
+  // Signing a state that is no longer HEAD would attest to code nobody tested.
+  requireTestedState(testedSha);
+  run('Sign off', ['gh', 'signoff', '--commit', testedSha]);
+}
+
+function explain(error: unknown) {
+  process.stderr.write(`\n✗ ${error instanceof Error ? error.message : String(error)}\n`);
+  process.exitCode = 1;
+}
+
+let testedSha;
+try {
+  testedSha = prepare();
+} catch (error) {
+  explain(error);
+}
+
+if (testedSha)
+  try {
+    await runSuite(testedSha);
+    process.stdout.write(`\n✓ Local CI passed and signed off ${testedSha}\n`);
+  } catch (error) {
+    // The suite ran, so a red status on the commit is earned and worth recording.
+    reportFailure(testedSha);
+    explain(error);
+  }
