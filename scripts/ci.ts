@@ -1,12 +1,15 @@
 /** Runs the full suite on this machine and signs off the tested commit, which is what a
     pull request needs before it can be merged. The browser suite needs Chromium, WebKit and
-    three local servers, so running it here is cheaper and truer than running it hosted. */
+    three local servers, so running it here is cheaper and truer than running it hosted.
+    The local run catches most failures fast; a deploy to the isolated preview Worker then proves
+    the same promises hold on the real Cloudflare runtime before anything gets signed off. */
 import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const TIMEOUT_MS = 15 * 60 * 1000;
 const SIGNOFF_INSTALL = 'gh extension install basecamp/gh-signoff --pin v0.4.1';
+const PREVIEW_ENVIRONMENT = 'preview';
 const SERVICES = [
   { name: 'api', url: 'http://127.0.0.1:4311/' },
   { name: 'preview', url: 'http://127.0.0.1:4313/' },
@@ -21,11 +24,12 @@ function capture(command: string[]) {
   return result.stdout.trim();
 }
 
-function run(step: string, command: string[]) {
+function run(step: string, command: string[], env?: Record<string, string>) {
   process.stdout.write(`\n── ${step} ──\n\n`);
   const result = spawnSync(command[0], command.slice(1), {
     cwd: ROOT,
     stdio: 'inherit',
+    env: { ...process.env, ...env },
     timeout: Math.max(deadline - Date.now(), 1),
   });
   if (result.status === 0) return;
@@ -68,6 +72,38 @@ async function waitForServices() {
   }
 }
 
+/** The preview Worker is a separate script, so its Durable Objects and rate limiter are its own
+    and the suite can create rooms without touching what kueki.app serves. */
+function deployPreviewWorker() {
+  process.stdout.write(`\n── Deploy preview Worker ──\n\n`);
+  const result = spawnSync('bunx', ['wrangler', 'deploy', '--env', PREVIEW_ENVIRONMENT], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    timeout: Math.max(deadline - Date.now(), 1),
+  });
+  const output = `${result.stdout || ''}${result.stderr || ''}`;
+  process.stdout.write(output);
+  if (result.status !== 0) throw new Error('Deploy preview Worker failed');
+  const origin = output.match(/https:\/\/\S+\.workers\.dev/)?.[0];
+  if (!origin) throw new Error('Deploy preview Worker printed no reachable URL');
+  return origin;
+}
+
+// Uploaded assets reach the edge a few seconds after the deploy command returns.
+async function waitForPreview(origin: string) {
+  process.stdout.write(`\n── Wait for preview ──\n\n`);
+  const until = Date.now() + 90_000;
+  while (true) {
+    const smoke = spawnSync('bun', ['scripts/smoke.ts', origin], { cwd: ROOT, encoding: 'utf8' });
+    if (smoke.status === 0) return process.stdout.write(smoke.stdout);
+    if (Date.now() >= until) {
+      process.stderr.write(`${smoke.stdout || ''}${smoke.stderr || ''}`);
+      throw new Error(`Preview never served every precached path: ${origin}`);
+    }
+    await Bun.sleep(3000);
+  }
+}
+
 function reportFailure(testedSha: string) {
   const reported = spawnSync('gh', ['signoff', 'fail', '--commit', testedSha], {
     cwd: ROOT,
@@ -97,6 +133,10 @@ async function main() {
     startServices();
     await waitForServices();
     run('Browser suite', ['bun', 'run', 'test:e2e']);
+
+    const previewOrigin = deployPreviewWorker();
+    await waitForPreview(previewOrigin);
+    run('Deployment suite', ['bunx', 'playwright', 'test'], { KUEKI_E2E_ORIGIN: previewOrigin });
 
     // Signing a state that is no longer HEAD would attest to code nobody tested.
     requireTestedState(testedSha);
