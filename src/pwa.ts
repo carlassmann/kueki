@@ -64,7 +64,10 @@ export function usePwa() {
     let registration: ServiceWorkerRegistration | undefined;
     let cancelled = false;
     const check = () => {
-      if (document.visibilityState === 'visible') void registration?.update().catch(() => {});
+      // Checking while a worker is still installing makes WebKit install a second copy of the same
+      // script and announce an update that does not exist, covering the page with the update toast.
+      if (!registration || registration.installing) return;
+      if (document.visibilityState === 'visible') void registration.update().catch(() => {});
     };
     document.addEventListener('visibilitychange', check);
     window.addEventListener('online', check);
@@ -82,7 +85,6 @@ export function usePwa() {
                 setWaiting(worker);
             });
           });
-          check();
         })
         .catch(() => setError(t('pwa.offlineUnavailable')));
     return () => {
