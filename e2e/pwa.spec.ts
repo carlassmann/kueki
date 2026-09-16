@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { workerOrigin } from './origins';
 test('production shell survives offline reload without claiming monitoring; browser push handler displays an alert', async ({
   browser,
 }) => {
@@ -8,11 +9,11 @@ test('production shell survives offline reload without claiming monitoring; brow
   let registrationId = '';
   cdp.on('ServiceWorker.workerRegistrationUpdated', (event) => {
     registrationId =
-      event.registrations.find((r) => r.scopeURL === 'http://localhost:4311/')?.registrationId ||
+      event.registrations.find((r) => r.scopeURL === `${workerOrigin}/`)?.registrationId ||
       registrationId;
   });
   await cdp.send('ServiceWorker.enable');
-  await page.goto('http://localhost:4311/');
+  await page.goto(`${workerOrigin}/`);
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
   });
@@ -21,7 +22,7 @@ test('production shell survives offline reload without claiming monitoring; brow
   await page.getByTestId('create-room').click();
   await page.getByTestId('submit-room').click();
   await expect(page.getByTestId('connection-status')).toHaveAttribute('data-status', 'connected');
-  await expect(page).toHaveURL('http://localhost:4311/app');
+  await expect(page).toHaveURL(`${workerOrigin}/app`);
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByTestId('room-title')).toBeVisible();
@@ -33,7 +34,7 @@ test('production shell survives offline reload without claiming monitoring; brow
   await context.setOffline(false);
   await expect(page.getByTestId('connection-status')).toHaveAttribute('data-status', 'connected');
   await cdp.send('ServiceWorker.deliverPushMessage', {
-    origin: 'http://localhost:4311',
+    origin: workerOrigin,
     registrationId,
     data: JSON.stringify({
       title: 'Noise detected',
@@ -59,14 +60,14 @@ test('production shell survives offline reload without claiming monitoring; brow
 test('the Worker serves every precached path, so installation cannot fail on a missing asset', async ({
   request,
 }) => {
-  const source = await (await request.get('http://localhost:4311/sw.js')).text();
+  const source = await (await request.get(`${workerOrigin}/sw.js`)).text();
   const lists = source.matchAll(/const (?:ESSENTIAL|OPTIONAL)_ASSETS = (\[[^\]]*\]);/g);
   const paths = [...lists].flatMap(([, list]) => JSON.parse(list) as string[]);
   expect(paths).toContain('/app');
   const statuses = await Promise.all(
     paths.map(async (path) => ({
       path,
-      status: (await request.get(`http://localhost:4311${path}`, { maxRedirects: 0 })).status(),
+      status: (await request.get(`${workerOrigin}${path}`, { maxRedirects: 0 })).status(),
     })),
   );
   expect(statuses.filter(({ status }) => status !== 200)).toEqual([]);
@@ -75,11 +76,11 @@ test('the Worker serves every precached path, so installation cannot fail on a m
 test('an app route opened offline renders the app, not the landing page', async ({ browser }) => {
   const context = await browser.newContext({ locale: 'en-US' });
   const page = await context.newPage();
-  await page.goto('http://localhost:4311/');
+  await page.goto(`${workerOrigin}/`);
   await page.evaluate(() => navigator.serviceWorker.ready);
   await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
   await context.setOffline(true);
-  await page.goto('http://localhost:4311/app/settings');
+  await page.goto(`${workerOrigin}/app/settings`);
   await expect(page.getByTestId('create-room')).toBeVisible();
   expect(await page.evaluate(() => !!document.querySelector('meta[name="robots"]'))).toBe(true);
   await context.close();

@@ -71,10 +71,30 @@ bun run ci
 ```
 
 It installs dependencies, checks types, builds, runs the unit and Worker tests, starts the local
-Wrangler, preview and HTTPS servers, and runs the browser suite in Chromium and WebKit. It signs
-off the commit only if `HEAD` and the working tree still match what it tested, so every new commit
-needs another run. A failed run reports a red status instead. Do not call `gh signoff` yourself.
+Wrangler, preview and HTTPS servers, and runs the browser suite in Chromium and WebKit. It then
+deploys the preview Worker and repeats the deployment-shaped specs against it, so a Worker that
+only works under Miniflare cannot be signed off. It signs off the commit only if `HEAD` and the
+working tree still match what it tested, so every new commit needs another run. A failed run
+reports a red status instead. Do not call `gh signoff` yourself.
 
 Merging to `main` is what deploys, through Cloudflare's own build.
+
+### The preview Worker
+
+`kueki-preview` is a second Worker, deployed from the `preview` environment in `wrangler.jsonc`:
+
+```sh
+bunx wrangler deploy --env preview
+KUEKI_E2E_ORIGIN=https://kueki-preview.assmann-568.workers.dev bunx playwright test
+```
+
+Being a separate script gives it its own Durable Object namespace and its own rate limiter, so the
+suite can create rooms and devices without touching anything kueki.app serves. It is the only
+environment with a workers.dev hostname; production answers on kueki.app alone. It carries no push
+keys, so notifications are unconfigured there.
+
+`KUEKI_E2E_ORIGIN` points the browser suite at a deployment. Without it the suite runs exactly as
+before, against the local servers. With it, only the specs that assert nothing machine-specific
+run: everything in `pwa.spec.ts` and `security.spec.ts`.
 
 The Workers test runs against real workerd and SQLite with TURN and push mocked. Browser tests drive Chromium and WebKit with synthetic microphones. [TESTING.md](TESTING.md) records what has been verified on real devices and what still needs a physical phone.
