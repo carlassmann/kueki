@@ -31,6 +31,8 @@
     // a separate script name gives ROOMS its own Durable Object namespace and its own rate limiter.
     "preview": {
       "name": "kueki-preview",
+      // Cloudflare generates no preview URLs for a Worker with a Durable Object, so each pull
+      // request gets its own Worker script (kueki-pr-<number>) rather than a preview of this one.
       "workers_dev": true,
       "assets": {
         "directory": "./dist",

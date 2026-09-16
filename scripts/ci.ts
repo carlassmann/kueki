@@ -74,22 +74,55 @@ async function waitForServices() {
 
 /** The preview Worker is a separate script, so its Durable Objects and rate limiter are its own
     and the suite can create rooms without touching what kueki.app serves. */
-function deployPreviewWorker() {
-  process.stdout.write(`\n── Deploy preview Worker ──\n\n`);
-  const result = spawnSync('bunx', ['wrangler', 'deploy', '--env', PREVIEW_ENVIRONMENT], {
+/** Cloudflare does not generate preview URLs for Workers that implement a Durable Object, so a
+    branch gets its own Worker script instead of a preview of the production one. That also keeps
+    its rooms out of production storage. */
+function previewWorkerName() {
+  const pullRequest = spawnSync('gh', ['pr', 'view', '--json', 'number', '--jq', '.number'], {
     cwd: ROOT,
     encoding: 'utf8',
-    timeout: Math.max(deadline - Date.now(), 1),
   });
+  const number = pullRequest.status === 0 ? pullRequest.stdout.trim() : '';
+  return number ? `kueki-pr-${number}` : 'kueki-preview';
+}
+
+function deployPreviewWorker(name: string) {
+  process.stdout.write(`\n── Deploy ${name} ──\n\n`);
+  const result = spawnSync(
+    'bunx',
+    ['wrangler', 'deploy', '--env', PREVIEW_ENVIRONMENT, '--name', name],
+    { cwd: ROOT, encoding: 'utf8', timeout: Math.max(deadline - Date.now(), 1) },
+  );
   const output = `${result.stdout || ''}${result.stderr || ''}`;
   process.stdout.write(output);
-  if (result.status !== 0) throw new Error('Deploy preview Worker failed');
+  if (result.status !== 0) throw new Error(`Deploying ${name} failed`);
   const origin = output.match(/https:\/\/\S+\.workers\.dev/)?.[0];
-  if (!origin) throw new Error('Deploy preview Worker printed no reachable URL');
+  if (!origin) throw new Error(`Deploying ${name} printed no reachable URL`);
   return origin;
 }
 
-// Uploaded assets reach the edge a few seconds after the deploy command returns.
+/** A preview Worker is a public copy of the app, so it should not outlive its pull request.
+    Deleting a Worker that was never created fails harmlessly, which keeps this a one-way sweep. */
+function deleteClosedPreviewWorkers() {
+  const closed = spawnSync(
+    'gh',
+    ['pr', 'list', '--state', 'closed', '--limit', '20', '--json', 'number', '--jq', '.[].number'],
+    { cwd: ROOT, encoding: 'utf8' },
+  );
+  if (closed.status !== 0) return;
+  for (const number of closed.stdout.split('\n').filter(Boolean)) {
+    const name = `kueki-pr-${number}`;
+    const deleted = spawnSync('bunx', ['wrangler', 'delete', '--name', name, '--force'], {
+      cwd: ROOT,
+      encoding: 'utf8',
+    });
+    if (deleted.status === 0)
+      process.stdout.write(`Deleted ${name}, its pull request is closed.\n`);
+  }
+}
+
+/** Assets reach the edge a moment after the deploy returns, so the smoke check is the readiness
+    probe: it passes only once every precached path is actually served. */
 async function waitForPreview(origin: string) {
   process.stdout.write(`\n── Wait for preview ──\n\n`);
   const until = Date.now() + 90_000;
@@ -134,9 +167,11 @@ async function main() {
     await waitForServices();
     run('Browser suite', ['bun', 'run', 'test:e2e']);
 
-    const previewOrigin = deployPreviewWorker();
+    const previewName = previewWorkerName();
+    const previewOrigin = deployPreviewWorker(previewName);
     await waitForPreview(previewOrigin);
     run('Deployment suite', ['bunx', 'playwright', 'test'], { KUEKI_E2E_ORIGIN: previewOrigin });
+    deleteClosedPreviewWorkers();
 
     // Signing a state that is no longer HEAD would attest to code nobody tested.
     requireTestedState(testedSha);
