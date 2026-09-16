@@ -66,14 +66,17 @@ const DISMISS_DISTANCE_PX = 96;
 const DISMISS_VELOCITY_PX_PER_MS = 0.5;
 // Velocity needs a sample from a moment ago; the last move is often the release point itself.
 const VELOCITY_WINDOW_MS = 50;
-const DISMISS_ANIMATION_MS = 240;
+const SETTLE_MS = 320;
+const DISMISS_MS = 240;
 
 type Drag = {
   pointerId: number;
   startY: number;
+  offset: number;
   sampleY: number;
   sampleTime: number;
   dragging: boolean;
+  frame: number;
 };
 
 /** Below the sheet breakpoint the dialog is a bottom sheet, so a downward drag dismisses it. */
@@ -81,19 +84,27 @@ function useSwipeToDismiss(ref: React.RefObject<HTMLDialogElement | null>, close
   const drag = useRef<Drag | null>(null);
   const dragEnded = useRef(false);
 
-  const settle = useCallback(() => {
+  useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    dialog.removeAttribute('data-dragging');
-    dialog.style.transform = '';
+    // iOS claims a downward swipe as a scroll unless the gesture cancels it, and only a
+    // non-passive listener may do that, which React's onTouchMove cannot be.
+    const keepGesture = (event: TouchEvent) => {
+      if (drag.current?.dragging) event.preventDefault();
+    };
+    dialog.addEventListener('touchmove', keepGesture, { passive: false });
+    return () => dialog.removeEventListener('touchmove', keepGesture);
+  }, [ref]);
+
+  const settle = useCallback(() => {
+    const dialog = ref.current;
+    if (dialog) glideTo(dialog, '', SETTLE_MS);
   }, [ref]);
 
   const dismiss = useCallback(() => {
     const dialog = ref.current;
     if (!dialog || prefersReducedMotion()) return close();
-    dialog.removeAttribute('data-dragging');
-    dialog.style.transform = 'translateY(100%)';
-    setTimeout(close, DISMISS_ANIMATION_MS);
+    glideTo(dialog, 'translateY(100%)', DISMISS_MS).onfinish = close;
   }, [ref, close]);
 
   const onPointerDown = useCallback(
@@ -104,9 +115,11 @@ function useSwipeToDismiss(ref: React.RefObject<HTMLDialogElement | null>, close
       drag.current = {
         pointerId: event.pointerId,
         startY: event.clientY,
+        offset: 0,
         sampleY: event.clientY,
         sampleTime: event.timeStamp,
         dragging: false,
+        frame: 0,
       };
     },
     [ref],
@@ -117,18 +130,25 @@ function useSwipeToDismiss(ref: React.RefObject<HTMLDialogElement | null>, close
       const state = drag.current;
       const dialog = ref.current;
       if (!state || !dialog || event.pointerId !== state.pointerId) return;
-      const offset = event.clientY - state.startY;
+      const offset = Math.max(0, event.clientY - state.startY);
       if (!state.dragging) {
         if (offset < DRAG_START_PX) return;
         state.dragging = true;
-        dialog.setAttribute('data-dragging', 'true');
+        takeOverTransform(dialog);
         dialog.setPointerCapture(event.pointerId);
       }
       if (event.timeStamp - state.sampleTime > VELOCITY_WINDOW_MS) {
         state.sampleY = event.clientY;
         state.sampleTime = event.timeStamp;
       }
-      dialog.style.transform = `translateY(${Math.max(0, offset)}px)`;
+      state.offset = offset;
+      // Several moves can arrive per frame, and only the last one is worth painting.
+      if (!state.frame) {
+        state.frame = requestAnimationFrame(() => {
+          state.frame = 0;
+          dialog.style.transform = `translateY(${state.offset}px)`;
+        });
+      }
     },
     [ref],
   );
@@ -139,8 +159,10 @@ function useSwipeToDismiss(ref: React.RefObject<HTMLDialogElement | null>, close
       const dialog = ref.current;
       drag.current = null;
       if (!state || !dialog || event.pointerId !== state.pointerId || !state.dragging) return;
+      cancelAnimationFrame(state.frame);
       dragEnded.current = true;
-      const offset = event.clientY - state.startY;
+      const offset = Math.max(0, event.clientY - state.startY);
+      dialog.style.transform = `translateY(${offset}px)`;
       const elapsed = event.timeStamp - state.sampleTime;
       const velocity = elapsed > 0 ? (event.clientY - state.sampleY) / elapsed : 0;
       const flicked = velocity > DISMISS_VELOCITY_PX_PER_MS;
@@ -151,7 +173,9 @@ function useSwipeToDismiss(ref: React.RefObject<HTMLDialogElement | null>, close
   );
 
   const onPointerCancel = useCallback(() => {
+    const state = drag.current;
     drag.current = null;
+    if (state) cancelAnimationFrame(state.frame);
     settle();
   }, [settle]);
 
@@ -163,6 +187,22 @@ function useSwipeToDismiss(ref: React.RefObject<HTMLDialogElement | null>, close
   }, []);
 
   return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, swallowClick };
+}
+
+/** Hands the transform from CSS to the drag, leaving the sheet exactly where it is now. */
+function takeOverTransform(dialog: HTMLDialogElement) {
+  for (const animation of dialog.getAnimations()) animation.finish();
+  dialog.setAttribute('data-swiping', 'true');
+}
+
+/** Moves the sheet from wherever the finger left it to `transform`, which becomes its resting style. */
+function glideTo(dialog: HTMLDialogElement, transform: string, duration: number) {
+  const from = dialog.style.transform || 'none';
+  dialog.style.transform = transform;
+  return dialog.animate([{ transform: from }, { transform: transform || 'none' }], {
+    duration: prefersReducedMotion() ? 0 : duration,
+    easing: getComputedStyle(dialog).getPropertyValue('--spring').trim() || 'ease-out',
+  });
 }
 
 function scrolledAway(target: Element, dialog: HTMLDialogElement) {
