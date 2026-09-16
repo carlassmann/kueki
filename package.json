@@ -37,14 +37,15 @@
   "scripts": {
     "setup": "bun scripts/setup.ts",
     "dev": "work up",
-    "build": "bun --bun vite build && bun scripts/build-seo.ts && bun scripts/build-sw.ts",
+    "build": "bun --bun vite build && bun scripts/build-seo.ts && bun scripts/build-sw.ts && bun scripts/check-assets.ts",
     "check": "tsc --noEmit && tsc -p tsconfig.worker.json --noEmit",
     "test": "bun run build:worker && bun test tests/monitor.test.ts tests/intl.test.ts && node --experimental-strip-types --test tests/cloudflare.test.ts",
     "test:e2e": "bunx playwright test",
     "preview": "bun --bun vite preview",
     "setup:https": "bun scripts/https-setup.ts",
     "format": "prettier --write src worker scripts tests e2e *.ts *.json *.jsonc work.config.js public/sw.js",
-    "build:worker": "wrangler deploy --dry-run --outdir .worker-build"
+    "build:worker": "wrangler deploy --dry-run --outdir .worker-build",
+    "smoke": "bun scripts/smoke.ts"
   },
   "packageManager": "bun@1.4.0"
 }

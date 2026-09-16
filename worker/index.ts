@@ -1,9 +1,8 @@
 import { type Env, hash, key, json, readBody, RequestError, failure } from './shared';
 import { serverLocale } from './intl';
+import { APP_ROUTES } from './routes';
 import type { Locale } from '../src/intl/locale';
 export { Room } from './room';
-
-const appRoutes = new Set(['/app', '/app/activity', '/app/settings', '/app/create', '/app/join']);
 
 function withIndexing(response: Response, status = response.status, contentType?: string) {
   const headers = new Headers(response.headers);
@@ -19,7 +18,7 @@ function withIndexing(response: Response, status = response.status, contentType?
 async function siteResponse(request: Request, env: Env, url: URL) {
   const path = url.pathname.replace(/\/+$/, '') || '/';
   if (path === '/index.html') return Response.redirect(new URL('/', url), 308);
-  if (appRoutes.has(path)) {
+  if (APP_ROUTES.has(path)) {
     const shell = new URL('/app-shell.txt', url);
     const response = await env.ASSETS.fetch(new Request(shell, request));
     return withIndexing(response, response.status, 'text/html; charset=utf-8');
