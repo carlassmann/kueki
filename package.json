@@ -37,6 +37,7 @@
   "scripts": {
     "setup": "bun scripts/setup.ts",
     "dev": "work up",
+    "ci": "bun scripts/ci.ts",
     "build": "bun --bun vite build && bun scripts/build-seo.ts && bun scripts/build-sw.ts && bun scripts/check-assets.ts",
     "check": "tsc --noEmit && tsc -p tsconfig.worker.json --noEmit",
     "test": "bun run build:worker && bun test tests/monitor.test.ts tests/intl.test.ts && node --experimental-strip-types --test tests/cloudflare.test.ts",
