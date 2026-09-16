@@ -172,12 +172,18 @@ function useSwipeToDismiss(ref: React.RefObject<HTMLDialogElement | null>, close
     [ref, dismiss, settle],
   );
 
-  const onPointerCancel = useCallback(() => {
-    const state = drag.current;
-    drag.current = null;
-    if (state) cancelAnimationFrame(state.frame);
-    settle();
-  }, [settle]);
+  // A cancel before the drag threshold is usually the browser claiming the gesture as a scroll.
+  // Settling then would animate a sheet that never moved, overriding its entry animation.
+  const onPointerCancel = useCallback(
+    (event: PointerEvent<HTMLDialogElement>) => {
+      const state = drag.current;
+      if (!state || event.pointerId !== state.pointerId) return;
+      drag.current = null;
+      cancelAnimationFrame(state.frame);
+      if (state.dragging) settle();
+    },
+    [settle],
+  );
 
   // Pointer capture retargets the closing click to the dialog, which would look like a backdrop tap.
   const swallowClick = useCallback(() => {
