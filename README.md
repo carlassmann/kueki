@@ -55,4 +55,26 @@ bun run test
 bun run test:e2e
 ```
 
+## Local CI and merging
+
+Nobody pushes to `main`. Work on a branch, open a pull request, and let it merge only once the
+suite has passed on a real machine. Install the signoff extension once:
+
+```sh
+gh extension install basecamp/gh-signoff --pin v0.4.1
+```
+
+Push your branch, then run:
+
+```sh
+bun run ci
+```
+
+It installs dependencies, checks types, builds, runs the unit and Worker tests, starts the local
+Wrangler, preview and HTTPS servers, and runs the browser suite in Chromium and WebKit. It signs
+off the commit only if `HEAD` and the working tree still match what it tested, so every new commit
+needs another run. A failed run reports a red status instead. Do not call `gh signoff` yourself.
+
+Merging to `main` is what deploys, through Cloudflare's own build.
+
 The Workers test runs against real workerd and SQLite with TURN and push mocked. Browser tests drive Chromium and WebKit with synthetic microphones. [TESTING.md](TESTING.md) records what has been verified on real devices and what still needs a physical phone.
