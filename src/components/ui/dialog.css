@@ -79,12 +79,14 @@
     margin: auto auto 0;
     border-radius: 28px 28px 0 0;
     animation: sheet-in 380ms var(--spring);
-    transition: transform 320ms var(--spring);
   }
 
-  [data-ui='dialog'][data-dragging='true'] {
+  /* A swipe drives the transform from JavaScript, and a CSS animation outranks an inline style.
+     Re-enabling the entry animation after a swipe would restart it and snap the sheet off screen,
+     so once a sheet has been swiped it keeps the animation off for the rest of its life. */
+  [data-ui='dialog'][data-swiping] {
     animation: none;
-    transition: none;
+    will-change: transform;
   }
 
   [data-ui='dialog-content'] {
