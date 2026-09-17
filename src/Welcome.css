@@ -176,10 +176,10 @@
   max-width: 390px;
 }
 
-/* Keeps the label visible above the field, and the field off the top edge of the keyboard, when a
-   focused field is scrolled into view. */
+/* Keeps the label visible above the field, and the field clear of both the top edge of the
+   keyboard and whatever floats over it, when a focused field is scrolled into view. */
 .setup input {
-  scroll-margin-block: 34px 16px;
+  scroll-margin-block: 34px calc(16px + var(--bottom-overlay, 0px));
 }
 
 .setup .back {

@@ -13,6 +13,7 @@ import { PrivacyIcon } from './icons';
 import { useIntl } from './intl/setup';
 import { LanguageSelect } from './LanguageSelect';
 import { Button } from './components/ui/button';
+import { ToastArea } from './toast-area';
 import './App.css';
 
 type AppModal = '' | 'privacy';
@@ -201,13 +202,15 @@ export function App() {
           </header>
         )}
         <Outlet />
-        <Toaster
-          theme="system"
-          position="bottom-right"
-          offset={{ bottom: 24, right: 24 }}
-          mobileOffset={{ bottom: session ? 104 : 16, left: 16, right: 16 }}
-          closeButton
-        />
+        <ToastArea>
+          <Toaster
+            theme="system"
+            position="bottom-right"
+            offset={{ bottom: 24, right: 24 }}
+            mobileOffset={{ bottom: session ? 104 : 16, left: 16, right: 16 }}
+            closeButton
+          />
+        </ToastArea>
         {!appMode && (
           <footer>
             <div className="footer-actions">
