@@ -114,7 +114,7 @@ export function App() {
         (room) => incoming === room.roomKey || incoming.startsWith(room.roomId + '.'),
       );
       if (existing) await activate(existing);
-      else await addRoom('/app/join', 'join=' + encodeURIComponent(incoming));
+      else await addRoom('/app/join', route.hash.replace(/^#/, ''));
     } catch (error) {
       setJoinError(error instanceof Error ? error.message : t('app.switchFailed'));
     } finally {
@@ -136,8 +136,11 @@ export function App() {
 
   const pwa = usePwa();
   const appMode = route.pathname.startsWith('/app') || !!incoming;
-  // A toast over a half-filled setup form covers its submit button, so the nudge waits for a room.
-  const inSetupForm = /^\/app\/(create|join)/.test(route.pathname) || Boolean(incoming);
+  // A toast over a half-filled setup form covers its submit button, so the nudge only shows
+  // where there is nothing to fill in.
+  const setup = new URLSearchParams(route.searchStr).get('setup');
+  const inSetupForm =
+    /^\/app\/(create|join)/.test(route.pathname) || Boolean(setup) || Boolean(incoming);
   useInstallNudge(pwa, Boolean(session) || inSetupForm);
   function saveSession(value: Session | null) {
     setRooms((current) =>

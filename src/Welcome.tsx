@@ -167,7 +167,7 @@ export function Welcome({
             <h2>
               {mode === 'create'
                 ? t('welcome.createRoom')
-                : invitedRoom
+                : invitedRoom && roomKey === invited
                   ? t('welcome.joinNamed', { room: invitedRoom })
                   : t('welcome.joinRoom')}
             </h2>

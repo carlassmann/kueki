@@ -20,10 +20,6 @@
   animation: backdrop-in 260ms var(--ease-out);
 }
 
-:root[data-dim='true'] [data-ui='dialog'] {
-  filter: brightness(0.62);
-}
-
 [data-ui='dialog-content'] {
   position: relative;
   padding: 34px 28px 28px;

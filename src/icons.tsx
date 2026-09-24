@@ -24,7 +24,6 @@ import {
   PlusSquare,
   ShieldCheck,
   Sun,
-  SunDim,
   Translate,
   Waveform,
   WifiHigh,
@@ -64,7 +63,6 @@ export const ShareIcon = Export;
 export const BrowserMenuIcon = DotsThreeOutlineVertical;
 export const BrightIcon = Sun;
 export const NightIcon = Moon;
-export const DimIcon = SunDim;
 export const SoundIcon = Waveform;
 export const ConnectionIcon = WifiHigh;
 export const LanguageIcon = Translate;

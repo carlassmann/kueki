@@ -11,7 +11,6 @@ export type RoomModel = {
   busy: boolean;
   connected: boolean;
   devices: PublicDevice[];
-  dimmed: boolean;
   events: Alert[];
   isBaby: boolean;
   installRequired: boolean;

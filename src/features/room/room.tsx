@@ -53,6 +53,7 @@ export function Room({
   const [events, setEvents] = useState<Alert[]>([]);
   const [settings, setSettings] = useState<RoomSettings>(DEFAULT_ROOM_SETTINGS);
   const [connection, setConnection] = useState<ConnectionStatus>('Connecting');
+  const [stateFresh, setStateFresh] = useState(false);
   const [active, setActive] = useState(false);
   const [level, setLevel] = useState(0);
   const [awake, setAwake] = useState(false);
@@ -114,6 +115,9 @@ export function Room({
       delete document.documentElement.dataset.dim;
     };
   }, [dim]);
+  // Night mode belongs to this room's watch: switching or leaving must not open the next room to
+  // a black screen. A reload keeps it, because unmount cleanup never runs then.
+  useEffect(() => () => localStorage.setItem('kueki-dim', 'false'), []);
   async function changeRoomSettings(next: Partial<RoomSettings>) {
     try {
       await request('room-settings', { ...session, settings: { ...settings, ...next } });
@@ -184,6 +188,7 @@ export function Room({
       session,
       (data) => {
         if (data.type === 'state') {
+          setStateFresh(true);
           const ids = data.devices.map((device) => device.id);
           for (const id of knownDevices) {
             if (!ids.includes(id)) {
@@ -216,12 +221,16 @@ export function Room({
             .then(() => calls.receive(data.source, data.payload))
             .catch((error) => {
               calls.stop(data.source);
+              // A failed call waits for the user to retry. Left at '' the retry effect would
+              // re-offer immediately, and the same signal would fail again in a tight loop.
+              if (!isBaby) setAudioStatuses((current) => ({ ...current, [data.source]: 'failed' }));
               setError(errorMessage(error));
             });
       },
       (status) => {
         setConnection(status);
         if (status !== 'Connected') {
+          setStateFresh(false);
           calls.stop(undefined, 'interrupted');
           setAudioStatuses(
             Object.fromEntries(
@@ -347,8 +356,6 @@ export function Room({
     setBusy(true);
     try {
       if (connection !== 'Access removed') await request('leave', session);
-      // Night mode belongs to this room's watch; the next room should not open to a black screen.
-      localStorage.setItem('kueki-dim', 'false');
       save(null);
       return '';
     } catch (error) {
@@ -385,7 +392,9 @@ export function Room({
     void callsRef.current?.resume(deviceId).catch((error) => setError(errorMessage(error)));
   }
   useEffect(() => {
-    if (isBaby || !connected) return;
+    // The device list from before an outage may be stale: wait for the first state after
+    // reconnecting, or a baby that paused meanwhile gets an offer it has to refuse.
+    if (isBaby || !connected || !stateFresh) return;
     for (const deviceId of wantedAudioRef.current) {
       const device = devices.find((candidate) => candidate.id === deviceId);
       if (!device || !device.online || !device.monitoring) continue;
@@ -395,7 +404,7 @@ export function Room({
         setError(errorMessage(error));
       });
     }
-  }, [connected, devices, audioStatuses, isBaby]);
+  }, [connected, stateFresh, devices, audioStatuses, isBaby]);
   useEffect(() => {
     if (isBaby) return;
     const recover = () => {
@@ -431,10 +440,14 @@ export function Room({
     RECENT_EVENT_MS,
   );
   const parents = devices.filter((device) => device.role === 'parent' && device.online);
+  // A lost connection or an error needs the full screen, so the night view steps aside. It stays
+  // through the brief 'Connecting' of a reload or reconnect, which would otherwise flash the room.
+  const nightView = dim && !error && (connected || connection === 'Connecting');
   return (
     <main className="room">
       <div ref={audioRef} hidden />
       <RoomHeader
+        inert={nightView}
         roomName={session.roomName}
         roomSwitcher={roomSwitcher}
         onInvite={() => setModal('invite')}
@@ -448,7 +461,8 @@ export function Room({
           />
         }
       />
-      <div className="room-alerts">
+      {/* Behind the night view the room is hidden, so it must not take focus or speak either. */}
+      <div className="room-alerts" inert={nightView}>
         {/* One notice at a time, most urgent first: stacked banners pushed the room itself off
             a phone screen. On Monitor the nest summary already tells the same story. */}
         {!connected ? (
@@ -491,7 +505,6 @@ export function Room({
               busy,
               connected,
               devices,
-              dimmed: dim,
               events,
               isBaby,
               installRequired: pwa.notificationsNeedInstall,
@@ -521,11 +534,10 @@ export function Room({
               toggleMonitoring,
             }}
           >
-            <div className="room-grid">
+            <div className="room-grid" inert={nightView}>
               <Outlet />
             </div>
-            {/* A lost connection or an error needs the full screen, so the night view steps aside. */}
-            {dim && connected && !error && <NightView />}
+            {nightView && <NightView screenAwake={isBaby ? !active || awake : wake.awake} />}
           </RoomProvider>
           {pwa.error && <Notice>{pwa.error}</Notice>}
         </div>

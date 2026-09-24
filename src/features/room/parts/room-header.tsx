@@ -25,6 +25,7 @@ export function RoomHeader({
   dimmed,
   onToggleDim,
   indicator,
+  inert,
 }: {
   roomName: string;
   roomSwitcher: ReactNode;
@@ -32,10 +33,11 @@ export function RoomHeader({
   dimmed: boolean;
   onToggleDim: () => void;
   indicator: ReactNode;
+  inert?: boolean;
 }) {
   const t = useIntl();
   return (
-    <header className="room-header">
+    <header className="room-header" inert={inert}>
       <Link to="/app" className="room-brand" aria-label={t('app.roomHomeLabel')}>
         <img src="/icon.svg" alt="" />
       </Link>

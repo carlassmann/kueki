@@ -35,6 +35,14 @@
   color: #c7b98f;
 }
 
+.night-view em {
+  max-width: 30ch;
+  color: #c9906f;
+  font-size: var(--text-sm);
+  font-style: normal;
+  text-align: center;
+}
+
 .night-view span {
   color: #4d4b46;
   font-size: var(--text-sm);

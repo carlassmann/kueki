@@ -4,8 +4,6 @@ export { baseRoomMessages, deRoomMessages };
 
 const baseRoomMessages = messages({
   'readiness.title': 'Listening and notifications',
-  'readiness.audioOn': 'Live audio on · {$count}',
-  'readiness.audioOff': 'Live audio off',
   'readiness.notificationsOn': 'Notifications on',
   'readiness.notificationsOff': 'Notifications off',
   'readiness.install': 'Install for notifications',
@@ -74,9 +72,7 @@ const baseRoomMessages = messages({
   'event.paused.detail': '{$name} stopped monitoring.',
   'event.offline.detail': '{$name} lost its connection. Check on your baby.',
 
-  'monitor.statusMonitoring': 'Monitoring',
   'monitor.statusLocal': 'Monitoring locally only',
-  'monitor.statusReady': 'Ready when you are',
   'monitor.titleMonitoring': 'Monitoring sound',
   'monitor.titleReady': 'Ready to monitor',
   'monitor.subtitleMonitoring': 'Listening for sounds in this room.',
@@ -84,7 +80,6 @@ const baseRoomMessages = messages({
   'monitor.roomSound': 'Room sound',
   'monitor.levelLittle': 'A little sound',
   'monitor.levelQuiet': 'Quiet',
-  'monitor.levelOff': 'Microphone off',
   'monitor.mascotAlt': 'Kueki sleeping',
   'monitor.pause': 'Pause monitoring',
   'monitor.start': 'Start monitoring',
@@ -100,6 +95,7 @@ const baseRoomMessages = messages({
   'monitor.dim': 'Dim screen',
   'monitor.restoreBrightness': 'Restore brightness',
   'monitor.nightHint': 'Tap to brighten',
+  'monitor.nightAwakeOff': 'This screen may go to sleep and stop monitoring.',
 
   'parent.emptyAlt': 'Kueki waiting for a baby device',
   'parent.emptyTitle': 'Add your baby device',
@@ -123,6 +119,7 @@ const baseRoomMessages = messages({
   'nest.titleQuiet': 'All quiet',
   'nest.titlePaused': 'Monitoring paused',
   'nest.soundDetail': '{$name} is picking up some noise.',
+  'nest.soundDetailMany': '{$names} are picking up some noise.',
   'nest.quietDetail': 'Kueki is keeping watch over {$name}.',
   'nest.pausedDetail': 'Start monitoring on {$name} so Kueki can listen in.',
   'nest.offlineDetail': 'Check that {$name} is charged and online.',
@@ -202,8 +199,6 @@ const baseRoomMessages = messages({
 
 const deRoomMessages = translate(baseRoomMessages, {
   'readiness.title': 'Zuhören und Benachrichtigungen',
-  'readiness.audioOn': 'Live-Audio an · {$count}',
-  'readiness.audioOff': 'Live-Audio aus',
   'readiness.notificationsOn': 'Benachrichtigungen an',
   'readiness.notificationsOff': 'Benachrichtigungen aus',
   'readiness.install': 'Für Benachrichtigungen installieren',
@@ -274,9 +269,7 @@ const deRoomMessages = translate(baseRoomMessages, {
   'event.paused.detail': '{$name} hat die Überwachung gestoppt.',
   'event.offline.detail': '{$name} hat die Verbindung verloren. Schau nach deinem Baby.',
 
-  'monitor.statusMonitoring': 'Überwachung läuft',
   'monitor.statusLocal': 'Nur lokale Überwachung',
-  'monitor.statusReady': 'Bereit, wenn du es bist',
   'monitor.titleMonitoring': 'Geräusche überwachen',
   'monitor.titleReady': 'Bereit zur Überwachung',
   'monitor.subtitleMonitoring': 'Hört auf Geräusche in diesem Raum.',
@@ -284,7 +277,6 @@ const deRoomMessages = translate(baseRoomMessages, {
   'monitor.roomSound': 'Raumgeräusch',
   'monitor.levelLittle': 'Ein leises Geräusch',
   'monitor.levelQuiet': 'Still',
-  'monitor.levelOff': 'Mikrofon aus',
   'monitor.mascotAlt': 'Kueki schläft',
   'monitor.pause': 'Überwachung pausieren',
   'monitor.start': 'Überwachung starten',
@@ -301,6 +293,7 @@ const deRoomMessages = translate(baseRoomMessages, {
   'monitor.dim': 'Bildschirm dimmen',
   'monitor.restoreBrightness': 'Helligkeit zurücksetzen',
   'monitor.nightHint': 'Tippen zum Aufhellen',
+  'monitor.nightAwakeOff': 'Dieser Bildschirm kann einschlafen und die Überwachung beenden.',
 
   'parent.emptyAlt': 'Kueki wartet auf ein Babygerät',
   'parent.emptyTitle': 'Füge dein Babygerät hinzu',
@@ -324,6 +317,7 @@ const deRoomMessages = translate(baseRoomMessages, {
   'nest.titleQuiet': 'Alles still',
   'nest.titlePaused': 'Überwachung pausiert',
   'nest.soundDetail': '{$name} nimmt etwas Lärm auf.',
+  'nest.soundDetailMany': '{$names} nehmen etwas Lärm auf.',
   'nest.quietDetail': 'Kueki wacht über {$name}.',
   'nest.pausedDetail': 'Starte die Überwachung auf {$name}, damit Kueki zuhören kann.',
   'nest.offlineDetail': 'Prüfe, ob {$name} geladen und online ist.',
@@ -331,7 +325,7 @@ const deRoomMessages = translate(baseRoomMessages, {
   'nest.theNest': 'das Nest',
 
   'mute.muted': 'Alarme stumm',
-  'mute.mute': 'Alarme aus',
+  'mute.mute': 'Alarme stummschalten',
 
   'sensitivity.label': 'Geräuschempfindlichkeit',
   'sensitivity.low': 'Niedrig',

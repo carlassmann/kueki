@@ -244,3 +244,31 @@ test('live audio recovers after the parent reconnects; failed recovery can be re
   await parentContext.close();
   await babyContext.close();
 });
+
+test('the night view never reassures over an empty nest, and a replaced invitation drops the linked room name', async ({
+  page,
+  browser,
+}) => {
+  await page.goto('/app/create');
+  await page.getByTestId('submit-room').click();
+  await expect(page.getByTestId('connection-status')).toHaveAttribute('data-status', 'connected');
+  await page.getByTestId('dim-toggle').click();
+  await expect(page.getByTestId('night-view')).toHaveAttribute('data-state', 'empty');
+  await expect(page.getByTestId('night-view')).not.toContainText('All quiet');
+  // What sits behind the night view cannot be reached without seeing it.
+  await expect(page.locator('.room-grid')).toHaveAttribute('inert', '');
+  await page.getByTestId('night-wake').click();
+  await expect(page.getByTestId('night-view')).toHaveCount(0);
+
+  const session = await page.evaluate(() => JSON.parse(localStorage.getItem('kueki-session')!));
+  const guest = await browser.newContext({ locale: 'en-US' });
+  const joining = await guest.newPage();
+  await joining.goto(
+    `/app/join#${new URLSearchParams({ join: session.roomKey, room: 'Nursery' })}`,
+  );
+  await expect(joining.getByRole('heading', { level: 2 })).toHaveText('Join Nursery');
+  await joining.getByTestId('change-invitation').click();
+  await joining.getByTestId('invitation-code').fill('another-room-code');
+  await expect(joining.getByRole('heading', { level: 2 })).toHaveText('Join a room');
+  await guest.close();
+});
