@@ -11,6 +11,7 @@ import { Button } from './components/ui/button';
 import './Welcome.css';
 import { Notice } from './components/ui/notice';
 import { codeLook } from './components/ui/text';
+import { invitedRoomName } from './invitation-link';
 
 // The app shell is sized to the visual viewport, so the bottom edge of the scroll container is the
 // top of the keyboard. 'nearest' therefore scrolls by the smallest amount that clears the keyboard
@@ -49,6 +50,7 @@ export function Welcome({
   const route = useLocation();
   const navigate = useNavigate();
   const invited = new URLSearchParams(route.hash.replace(/^#/, '')).get('join') || '';
+  const invitedRoom = invited ? invitedRoomName(route.hash) : '';
   const legacySetup = new URLSearchParams(route.searchStr).get('setup');
   const mode =
     invited || route.pathname === '/app/join' || legacySetup === 'join'
@@ -57,11 +59,15 @@ export function Welcome({
         ? 'create'
         : '';
   const [scanning, setScanning] = useState(false);
+  const [editingInvitation, setEditingInvitation] = useState(false);
   const scanned = useCallback((code: string) => {
     setRoomKey(code);
     setScanning(false);
   }, []);
-  const [role, setRole] = useState<Role>('parent');
+  const [chosenRole, setRole] = useState<Role | null>(null);
+  // A new room is almost always made on the parent's phone. A joining device could be either, and
+  // a wrong guess silently turns the nursery phone into a second parent, so joining asks.
+  const role = chosenRole ?? (mode === 'create' ? 'parent' : null);
   const [name, setName] = useState('');
   const [roomKey, setRoomKey] = useState(invited);
   const [roomName, setRoomName] = useState(() => t('welcome.defaultRoomName'));
@@ -69,6 +75,7 @@ export function Welcome({
   const [busy, setBusy] = useState(false);
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (!role) return;
     setBusy(true);
     setError('');
     try {
@@ -81,6 +88,7 @@ export function Welcome({
       });
       onJoin(session);
     } catch (error) {
+      setEditingInvitation(true);
       setError(errorMessage(error));
     } finally {
       setBusy(false);
@@ -156,33 +164,57 @@ export function Welcome({
             >
               <BackIcon size={16} /> {t('welcome.back')}
             </Button>
-            <h2>{mode === 'join' ? t('welcome.joinRoom') : t('welcome.createRoom')}</h2>
-            <p>{mode === 'join' ? t('welcome.joinIntro') : t('welcome.createIntro')}</p>
+            <h2>
+              {mode === 'create'
+                ? t('welcome.createRoom')
+                : invitedRoom
+                  ? t('welcome.joinNamed', { room: invitedRoom })
+                  : t('welcome.joinRoom')}
+            </h2>
+            <p>
+              {mode === 'join'
+                ? t(invited ? 'welcome.invitationReady' : 'welcome.joinIntro')
+                : t('welcome.createIntro')}
+            </p>
             {mode === 'join' ? (
               <>
-                <label>
-                  {t('welcome.invitationCode')}
-                  <input
-                    required
-                    data-testid="invitation-code"
-                    {...codeLook}
-                    onFocus={scrollFocusedFieldIntoView}
-                    value={roomKey}
-                    onChange={(e) => setRoomKey(e.target.value)}
-                    placeholder={t('welcome.invitationPlaceholder')}
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                  />
-                </label>
-                <Button
-                  variant="secondary"
-                  full
-                  data-testid="scan-qr"
-                  onClick={() => setScanning(true)}
-                >
-                  {t('welcome.scanQr')}
-                </Button>
+                {invited && (
+                  <Button
+                    variant="quiet"
+                    className="text-link change-invitation"
+                    data-testid="change-invitation"
+                    aria-expanded={editingInvitation}
+                    aria-controls="invitation-entry"
+                    onClick={() => setEditingInvitation(!editingInvitation)}
+                  >
+                    {t('welcome.changeInvitation')}
+                  </Button>
+                )}
+                <div id="invitation-entry" hidden={Boolean(invited) && !editingInvitation}>
+                  <label>
+                    {t('welcome.invitationCode')}
+                    <input
+                      required
+                      data-testid="invitation-code"
+                      {...codeLook}
+                      onFocus={scrollFocusedFieldIntoView}
+                      value={roomKey}
+                      onChange={(e) => setRoomKey(e.target.value)}
+                      placeholder={t('welcome.invitationPlaceholder')}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                    />
+                  </label>
+                  <Button
+                    variant="secondary"
+                    full
+                    data-testid="scan-qr"
+                    onClick={() => setScanning(true)}
+                  >
+                    {t('welcome.scanQr')}
+                  </Button>
+                </div>
                 {scanning && (
                   <InvitationScanner onScan={scanned} close={() => setScanning(false)} />
                 )}
@@ -248,7 +280,7 @@ export function Welcome({
               full
               type="submit"
               data-testid="submit-room"
-              disabled={busy || (mode === 'join' && !roomKey.trim())}
+              disabled={busy || !role || (mode === 'join' && !roomKey.trim())}
             >
               {busy
                 ? t('welcome.submitting')

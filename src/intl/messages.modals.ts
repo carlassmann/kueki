@@ -67,8 +67,8 @@ const baseModalMessages = messages({
   'scanner.cameraUnavailable':
     'Camera unavailable. Allow camera access, or close this and paste the code.',
 
-  'qr.alt': 'Invitation code QR',
-  'qr.hint': 'Scan to copy the code, then paste it into Kueki’s Join a room screen.',
+  'qr.alt': 'Invitation QR code',
+  'qr.hint': 'Scan with the other phone’s camera to open this invitation.',
   'qr.unavailable': 'QR code unavailable. Copy the invitation code below.',
 });
 
@@ -137,8 +137,7 @@ const deModalMessages = translate(baseModalMessages, {
   'scanner.cameraUnavailable':
     'Kamera nicht verfügbar. Erlaube den Kamerazugriff oder schließe das Fenster und füge den Code ein.',
 
-  'qr.alt': 'QR-Code für den Einladungscode',
-  'qr.hint':
-    'Scanne, um den Code zu kopieren, und füge ihn dann in den Bildschirm „Raum betreten“ von Kueki ein.',
+  'qr.alt': 'QR-Code für die Einladung',
+  'qr.hint': 'Scanne mit der Kamera des anderen Handys, um diese Einladung zu öffnen.',
   'qr.unavailable': 'QR-Code nicht verfügbar. Kopiere den Einladungscode unten.',
 });

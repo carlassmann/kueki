@@ -38,22 +38,27 @@ export function ConnectionIndicator({
 }) {
   const t = useIntl();
   return (
-    <div className="connection-indicator">
-      <Tooltip label={t(CONNECTION_KEYS[connection])}>
+    // Connection and wake lock share one hit area: both answer "is this screen doing its job?".
+    <Tooltip
+      label={
+        parentAwake
+          ? `${t(CONNECTION_KEYS[connection])} · ${t('room.screenAwake')}`
+          : t(CONNECTION_KEYS[connection])
+      }
+    >
+      <span className="connection-indicator">
         <Status
           tone={connected ? 'good' : 'warning'}
           data-testid="connection-status"
           data-status={CONNECTION_CODES[connection]}
         />
-      </Tooltip>
-      {parentAwake && (
-        <Tooltip label={t('room.screenAwake')}>
+        {parentAwake && (
           <span className="wake-status" data-testid="wake-status">
-            <BrightIcon size={16} />
+            <BrightIcon size={14} />
           </span>
-        </Tooltip>
-      )}
-    </div>
+        )}
+      </span>
+    </Tooltip>
   );
 }
 

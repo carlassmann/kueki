@@ -51,6 +51,7 @@ export type Signal = {
   kind: 'offer' | 'answer' | 'ice' | 'stop';
   description?: RTCSessionDescriptionInit;
   candidate?: RTCIceCandidateInit;
+  reason?: 'stopped' | 'interrupted';
 };
 export const HEARTBEAT_MS = 3000;
 export const OFFLINE_MS = 12000;

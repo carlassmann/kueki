@@ -40,21 +40,28 @@ export class AudioCalls {
   ) {}
 
   async listen(target: string) {
-    this.stop(target);
+    this.stop(target, 'interrupted');
     const generation = this.generation;
     const attempt = this.attempts.get(target);
     this.onStatus('connecting', target);
 
-    await this.configure();
-    if (generation !== this.generation || attempt !== this.attempts.get(target)) return;
+    try {
+      await this.configure();
+      if (generation !== this.generation || attempt !== this.attempts.get(target)) return;
 
-    const callId = crypto.randomUUID();
-    const { peer } = this.createCall(target, callId, true);
-    peer.addTransceiver('audio', { direction: 'recvonly' });
-    await peer.setLocalDescription(await peer.createOffer());
-    if (!this.calls.has(callId)) return;
+      const callId = crypto.randomUUID();
+      const { peer } = this.createCall(target, callId, true);
+      peer.addTransceiver('audio', { direction: 'recvonly' });
+      await peer.setLocalDescription(await peer.createOffer());
+      if (!this.calls.has(callId)) return;
 
-    this.send(target, { kind: 'offer', callId, description: peer.localDescription!.toJSON() });
+      this.send(target, { kind: 'offer', callId, description: peer.localDescription!.toJSON() });
+    } catch (error) {
+      if (generation !== this.generation || attempt !== this.attempts.get(target)) return;
+      this.stop(target);
+      this.onStatus('failed', target);
+      throw error;
+    }
   }
 
   async receive(source: string, signal: Signal) {
@@ -69,7 +76,7 @@ export class AudioCalls {
     if (signal.kind === 'stop') {
       if (call?.target === source) {
         this.endCall(signal.callId, false);
-        this.onStatus('stopped', source);
+        this.onStatus(signal.reason === 'interrupted' ? 'disconnected' : 'stopped', source);
       }
       return;
     }
@@ -100,7 +107,7 @@ export class AudioCalls {
     if (this.calls.get(call.callId) === call) this.onStatus('live', target);
   }
 
-  stop(target?: string) {
+  stop(target?: string, reason: 'stopped' | 'interrupted' = 'stopped') {
     if (target) this.attempts.set(target, (this.attempts.get(target) ?? 0) + 1);
     else {
       ++this.generation;
@@ -108,7 +115,7 @@ export class AudioCalls {
     }
 
     for (const [callId, call] of this.calls) {
-      if (!target || call.target === target) this.endCall(callId);
+      if (!target || call.target === target) this.endCall(callId, true, reason);
     }
     this.onStatus('', target);
   }
@@ -127,7 +134,7 @@ export class AudioCalls {
       callId,
       pendingCandidates: [],
       timeout: setTimeout(() => {
-        this.endCall(callId);
+        this.endCall(callId, true, 'interrupted');
         this.onStatus('failed', target);
       }, CALL_TIMEOUT_MS),
     };
@@ -159,7 +166,7 @@ export class AudioCalls {
     };
     call.audio.onended = () => {
       if (!this.calls.has(call.callId)) return;
-      this.endCall(call.callId);
+      this.endCall(call.callId, true, 'interrupted');
       this.onStatus('disconnected', call.target);
     };
   }
@@ -170,6 +177,7 @@ export class AudioCalls {
       if (candidate) this.send(target, { kind: 'ice', callId, candidate: candidate.toJSON() });
     };
     peer.onconnectionstatechange = () => {
+      if (!this.calls.has(callId)) return;
       if (peer.connectionState === 'connected') {
         clearTimeout(call.timeout);
         if (listening) {
@@ -177,7 +185,7 @@ export class AudioCalls {
         }
       }
       if (['failed', 'disconnected'].includes(peer.connectionState)) {
-        this.endCall(callId);
+        this.endCall(callId, true, 'interrupted');
         if (listening) this.onStatus('disconnected', target);
       }
     };
@@ -210,7 +218,7 @@ export class AudioCalls {
     }
 
     for (const call of this.calls.values()) {
-      if (call.target === source) this.endCall(call.callId);
+      if (call.target === source) this.endCall(call.callId, true, 'interrupted');
     }
 
     const generation = this.generation;
@@ -268,19 +276,22 @@ export class AudioCalls {
     }
   }
 
-  private endCall(callId: string, notifyPeer = true) {
+  private endCall(
+    callId: string,
+    notifyPeer = true,
+    reason: 'stopped' | 'interrupted' = 'stopped',
+  ) {
     const call = this.calls.get(callId);
     if (!call) return;
 
     this.calls.delete(callId);
     clearTimeout(call.timeout);
     call.peer.close();
-    if (notifyPeer) this.send(call.target, { kind: 'stop', callId });
+    if (notifyPeer) this.send(call.target, { kind: 'stop', callId, reason });
     if (call.audio) {
       call.audio.pause();
       call.audio.srcObject = null;
       call.audio.remove();
-      this.onStatus('', call.target);
     }
   }
 }

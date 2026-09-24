@@ -4,7 +4,6 @@ import {
   AlertMutedIcon,
   BabyIcon,
   BrightIcon,
-  DimIcon,
   ForwardIcon,
   MicrophoneIcon,
   ParentIcon,
@@ -17,6 +16,7 @@ import { AudioMeter } from '../parts/room-components';
 import { useRoom } from '../room-context';
 import { SENSITIVITY_THRESHOLDS } from '../../../noise';
 import { KuekiMascot } from '../../../KuekiMascot';
+import { describeNest } from '../lib/nest-state';
 import { T, useIntl } from '../../../intl/setup';
 import type { MessageKey } from '../../../intl/messages';
 import type { AudioStatus } from '../lib/audio-calls';
@@ -51,46 +51,40 @@ export function MonitorScreen() {
 function BabyMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
   const t = useIntl();
   const soundDetected = room.active && room.level >= SENSITIVITY_THRESHOLDS[room.sensitivity - 1]!;
+  const monitoringHereOnly = room.active && !room.connected;
 
   return (
     <>
-      <div className="monitor-topline">
-        <span className="monitor-device" data-testid="monitor-device">
-          {room.session.name}
-        </span>
-        <DimControl room={room} />
-      </div>
       <div className="monitor-hero">
         <KuekiMascot
           state={!room.active ? 'paused' : soundDetected ? 'sound' : 'quiet'}
           alt={t('monitor.mascotAlt')}
         />
-        <Status
-          tone={room.active && room.connected ? 'good' : 'neutral'}
+        <h2
           data-testid="monitor-status"
-          data-state={!room.active ? 'ready' : room.connected ? 'monitoring' : 'local'}
+          data-state={!room.active ? 'ready' : monitoringHereOnly ? 'local' : 'monitoring'}
         >
-          {room.active
-            ? room.connected
-              ? t('monitor.statusMonitoring')
-              : t('monitor.statusLocal')
-            : t('monitor.statusReady')}
-        </Status>
-        <h2>{room.active ? t('monitor.titleMonitoring') : t('monitor.titleReady')}</h2>
+          {!room.active
+            ? t('monitor.titleReady')
+            : monitoringHereOnly
+              ? t('monitor.statusLocal')
+              : t('monitor.titleMonitoring')}
+        </h2>
         <p>{room.active ? t('monitor.subtitleMonitoring') : t('monitor.subtitleReady')}</p>
       </div>
       <div className="meter-wrap">
         <div>
           <span>{t('monitor.roomSound')}</span>
-          <span>
-            {soundDetected
-              ? t('monitor.levelLittle')
-              : room.active
-                ? t('monitor.levelQuiet')
-                : t('monitor.levelOff')}
-          </span>
+          {room.active && (
+            <span data-sound={soundDetected}>
+              {soundDetected ? t('monitor.levelLittle') : t('monitor.levelQuiet')}
+            </span>
+          )}
         </div>
-        <AudioMeter value={room.active ? room.level : 0} />
+        <AudioMeter
+          value={room.active ? room.level : 0}
+          threshold={SENSITIVITY_THRESHOLDS[room.sensitivity - 1]}
+        />
       </div>
       <Button
         variant={room.active ? 'soft' : 'primary'}
@@ -108,204 +102,238 @@ function BabyMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
         {room.busy ? t('monitor.opening') : room.active ? t('monitor.pause') : t('monitor.start')}
       </Button>
       <div className="baby-checks">
-        <span>
+        <span data-on={room.active}>
           <MicrophoneIcon size={16} />
           {room.active ? t('monitor.micOn') : t('monitor.micOff')}
         </span>
-        <span>
-          <BrightIcon size={16} />
-          {room.awake ? t('monitor.awakeOn') : t('monitor.awakeOff')}
-        </span>
-        <span>
+        {/* While monitoring without a wake lock, the notice below says the same thing with advice. */}
+        {!(room.active && !room.awake) && (
+          <span data-on={room.awake}>
+            <BrightIcon size={16} />
+            {room.awake ? t('monitor.awakeOn') : t('monitor.awakeOff')}
+          </span>
+        )}
+        <span data-on={room.parents.length > 0}>
           <ParentIcon size={16} />
           {t('monitor.parentsOnline', { count: room.parents.length })}
         </span>
       </div>
       {room.active && !room.awake && <Notice>{t('monitor.keepAwake')}</Notice>}
-      <Sensitivity
-        id="sensitivity"
-        testId="baby-sensitivity"
-        value={room.sensitivity}
-        onChange={(value) => void room.changeSensitivity(room.session.deviceId, value)}
-      />
+      <section className="monitor-card">
+        <Sensitivity
+          id="sensitivity"
+          testId="baby-sensitivity"
+          value={room.sensitivity}
+          disabled={!room.connected}
+          onChange={(value) => void room.changeSensitivity(room.session.deviceId, value)}
+        />
+      </section>
     </>
-  );
-}
-
-function DimControl({ room }: { room: ReturnType<typeof useRoom> }) {
-  const t = useIntl();
-  return (
-    <Button
-      variant="secondary"
-      size="small"
-      className="dim-control"
-      data-testid="dim-toggle"
-      data-on={room.dimmed}
-      aria-pressed={room.dimmed}
-      onClick={room.toggleDim}
-    >
-      {room.dimmed ? <BrightIcon size={18} /> : <DimIcon size={18} />}
-      {room.dimmed ? t('monitor.restoreBrightness') : t('monitor.dim')}
-    </Button>
   );
 }
 
 function ParentMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
   const t = useIntl();
-  if (room.babies.length === 0) {
+  if (room.babies.length === 0)
     return (
-      <div className="empty-nest" data-testid="empty-nest">
-        <KuekiMascot className="empty-nest-mascot" state="quiet" alt={t('parent.emptyAlt')} />
-        <h2>{t('parent.emptyTitle')}</h2>
-        <p>
-          <T k="parent.emptyBody" components={{ br: () => <br /> }} />
-        </p>
-        <Button variant="primary" data-testid="empty-nest-invite" onClick={room.openInvitation}>
-          {t('parent.emptyInvite')} <ForwardIcon size={18} />
-        </Button>
-        {room.dimmed && <DimControl room={room} />}
+      <div className="device-list">
+        <div className="empty-nest" data-testid="empty-nest">
+          <KuekiMascot className="empty-nest-mascot" state="quiet" alt={t('parent.emptyAlt')} />
+          <h2>{t('parent.emptyTitle')}</h2>
+          <p>
+            <T k="parent.emptyBody" components={{ br: () => <br /> }} />
+          </p>
+          <Button variant="primary" data-testid="empty-nest-invite" onClick={room.openInvitation}>
+            {t('parent.emptyInvite')} <ForwardIcon size={18} />
+          </Button>
+        </div>
+        <NotificationReadiness room={room} />
       </div>
     );
-  }
-
+  // The baby cards come straight after a compact summary: at night the card is what a parent
+  // reaches for, so it must not sit below a hero.
   return (
     <div className="device-list">
-      <NestSummary room={room} />
-      {room.babies.map((device) => (
-        <article
-          className="device-card"
-          key={device.id}
-          data-testid="device-card"
-          data-device-id={device.id}
-          data-device-name={device.name}
-        >
-          <div className="device-heading">
-            <div className="device-icon">
-              <BabyIcon size={26} />
-            </div>
-            <div>
-              <h3>{device.name}</h3>
-              <Status
-                tone={device.monitoring && room.connected ? 'good' : 'warning'}
-                data-testid="device-status"
-                data-state={
-                  !room.connected
-                    ? 'unknown'
-                    : !device.online
-                      ? 'offline'
-                      : device.monitoring
-                        ? 'monitoring'
-                        : 'paused'
-                }
-              >
-                {!room.connected
-                  ? t('parent.deviceUnknown')
-                  : !device.online
-                    ? t('parent.deviceOffline')
-                    : device.monitoring
-                      ? t('parent.deviceMonitoring')
-                      : t('parent.devicePaused')}
-              </Status>
-            </div>
-          </div>
-          <AudioMeter value={device.monitoring && room.connected ? device.level : 0} />
-          <Sensitivity
-            id={`sensitivity-${device.id}`}
-            testId="device-sensitivity"
-            label={t('parent.deviceSensitivity', { name: device.name })}
-            value={device.sensitivity}
-            disabled={!room.connected}
-            onChange={(value) => void room.changeSensitivity(device.id, value)}
-          />
-          <div className="device-bottom">
-            <Caption as="span">
-              {device.lastNoise
-                ? t('parent.deviceLastSound', { time: relativeTime(device.lastNoise) })
-                : t('parent.deviceNoSounds')}
-            </Caption>
-            <div className="device-actions">
-              <MuteToggle room={room} device={device} />
-              {isListening(room.audioStatuses[device.id]) ? (
-                <Button
-                  variant="secondary"
-                  size="small"
-                  data-testid="listen-toggle"
-                  data-listening="true"
-                  onClick={() => room.stopListening(device.id)}
-                >
-                  <PauseIcon size={17} weight="fill" /> {t('parent.stopListening')}
-                </Button>
-              ) : (
-                <Button
-                  variant="primary"
-                  size="small"
-                  data-testid="listen-toggle"
-                  data-listening="false"
-                  disabled={!room.connected || !device.monitoring}
-                  onClick={() => room.listenTo(device.id)}
-                >
-                  <ParentIcon size={18} /> {t('parent.listen')}
-                </Button>
-              )}
-            </div>
-          </div>
-          {room.audioStatuses[device.id] && (
-            <div
-              className="audio-status"
-              role="status"
-              data-testid="audio-status"
-              data-status={room.audioStatuses[device.id]}
-            >
-              <SoundIcon size={17} />
-              {audioStatusLabel(room.audioStatuses[device.id], t)}
-              {room.audioStatuses[device.id] === 'paused' && (
-                <button
-                  type="button"
-                  data-testid="resume-audio"
-                  onClick={() => room.resumeAudio(device.id)}
-                >
-                  {t('parent.resumeAudio')}
-                </button>
-              )}
-            </div>
-          )}
-        </article>
-      ))}
-      <DimControl room={room} />
+      {/* Without a connection the banner above says everything the summary could. */}
+      {room.connected && <NestSummary room={room} />}
+      <div className="device-grid" data-count={room.babies.length}>
+        {room.babies.map((device) => (
+          <BabyDevice key={device.id} room={room} device={device} />
+        ))}
+      </div>
+      <NotificationReadiness room={room} />
     </div>
+  );
+}
+
+function NotificationReadiness({ room }: { room: ReturnType<typeof useRoom> }) {
+  const t = useIntl();
+  // Live audio is shown on each baby card by its listen button, so this row is only about alerts.
+  return (
+    <section
+      className="monitor-readiness"
+      data-testid="monitor-readiness"
+      data-on={room.pushEnabled}
+      aria-label={t('readiness.title')}
+    >
+      <Status tone={room.pushEnabled ? 'good' : 'warning'}>
+        {room.pushEnabled ? t('readiness.notificationsOn') : t('readiness.notificationsOff')}
+      </Status>
+      {!room.pushEnabled && (
+        <Button
+          variant="quiet"
+          size="small"
+          data-testid={room.installRequired ? 'open-install-guide' : 'enable-notifications'}
+          disabled={room.busy || !room.connected}
+          onClick={
+            room.installRequired ? room.openInstallGuide : () => void room.enableNotifications()
+          }
+        >
+          <AlertIcon size={17} />
+          {room.installRequired ? t('readiness.install') : t('settings.notificationsEnable')}
+        </Button>
+      )}
+    </section>
+  );
+}
+
+function BabyDevice({ room, device }: { room: ReturnType<typeof useRoom>; device: PublicDevice }) {
+  const t = useIntl();
+  const status = room.audioStatuses[device.id];
+  const available = room.connected && device.online && device.monitoring;
+  const needsResume = status === 'paused' || status === 'disconnected' || status === 'failed';
+  return (
+    <article
+      className="device-card"
+      data-testid="device-card"
+      data-device-id={device.id}
+      data-device-name={device.name}
+    >
+      <div className="device-heading">
+        <div className="device-icon">
+          <BabyIcon size={26} />
+        </div>
+        <div>
+          <h3>{device.name}</h3>
+          <Status
+            tone={available ? 'good' : 'warning'}
+            data-testid="device-status"
+            data-state={
+              !room.connected
+                ? 'unknown'
+                : !device.online
+                  ? 'offline'
+                  : device.monitoring
+                    ? 'monitoring'
+                    : 'paused'
+            }
+          >
+            {!room.connected
+              ? t('parent.deviceUnknown')
+              : !device.online
+                ? t('parent.deviceOffline')
+                : device.monitoring
+                  ? t('parent.deviceMonitoring')
+                  : t('parent.devicePaused')}
+          </Status>
+        </div>
+      </div>
+      <div className="device-actions">
+        {needsResume && (
+          <Button
+            variant="primary"
+            size="small"
+            data-testid="resume-audio"
+            disabled={!available}
+            onClick={() =>
+              status === 'paused' ? room.resumeAudio(device.id) : room.listenTo(device.id)
+            }
+          >
+            <ParentIcon size={18} />
+            <span>{t('parent.resumeAudio')}</span>
+          </Button>
+        )}
+        {isListening(status) || needsResume ? (
+          <Button
+            variant="secondary"
+            size="small"
+            data-testid="listen-toggle"
+            data-listening="true"
+            onClick={() => room.stopListening(device.id)}
+          >
+            <PauseIcon size={17} weight="fill" />
+            <span>{t('parent.stopListening')}</span>
+          </Button>
+        ) : (
+          !needsResume && (
+            <Button
+              variant="primary"
+              size="small"
+              data-testid="listen-toggle"
+              data-listening="false"
+              disabled={!available}
+              onClick={() => room.listenTo(device.id)}
+            >
+              <ParentIcon size={18} />
+              <span>{t('parent.listen')}</span>
+            </Button>
+          )
+        )}
+        <MuteToggle room={room} device={device} />
+      </div>
+      {/* The listen button already says whether audio is on, so the line below only speaks up
+          for states the button cannot show: connecting, and audio that dropped out. */}
+      <div className="device-audio" data-testid="audio-status" data-status={status || 'off'}>
+        <AudioMeter
+          value={available ? device.level : 0}
+          threshold={SENSITIVITY_THRESHOLDS[device.sensitivity - 1]}
+        />
+        {needsExplaining(status) && (
+          <p className="audio-status" role="status">
+            <SoundIcon size={17} />
+            {audioStatusLabel(status, t)}
+          </p>
+        )}
+        <Caption as="span">
+          {device.lastNoise
+            ? t('parent.deviceLastSound', { time: relativeTime(device.lastNoise) })
+            : t('parent.deviceNoSounds')}
+        </Caption>
+      </div>
+      <details className="device-sensitivity" data-testid="sensitivity-details">
+        <summary>
+          {t('sensitivity.label')}
+          <span>{t(SENSITIVITY_KEYS[device.sensitivity - 1]!)}</span>
+        </summary>
+        <Sensitivity
+          id={`sensitivity-${device.id}`}
+          testId="device-sensitivity"
+          label={t('parent.deviceSensitivity', { name: device.name })}
+          value={device.sensitivity}
+          disabled={!room.connected}
+          onChange={(value) => void room.changeSensitivity(device.id, value)}
+        />
+      </details>
+    </article>
   );
 }
 
 function NestSummary({ room }: { room: ReturnType<typeof useRoom> }) {
   const t = useIntl();
-  const watched = room.connected
-    ? room.babies.filter((device) => device.online && device.monitoring)
-    : [];
-  const noisy = watched.filter(
-    (device) => device.level >= SENSITIVITY_THRESHOLDS[device.sensitivity - 1]!,
-  );
-  const state = watched.length === 0 ? 'paused' : noisy.length > 0 ? 'sound' : 'quiet';
-  const nest = watched.length === 1 ? watched[0]!.name : t('nest.theNest');
+  const nest = describeNest(room.babies, room.connected, t);
 
   return (
-    <section className="nest-summary" data-testid="nest-summary" data-state={state}>
-      <KuekiMascot state={state} alt={t('nest.alt')} />
-      <h2>
-        {state === 'sound'
-          ? t('nest.titleSound')
-          : state === 'quiet'
-            ? t('nest.titleQuiet')
-            : t('nest.titlePaused')}
-      </h2>
-      <p>
-        {state === 'sound'
-          ? t('nest.soundDetail', {
-              name: noisy.length === 1 ? noisy[0]!.name : t('nest.fallbackBaby'),
-            })
-          : state === 'quiet'
-            ? t('nest.quietDetail', { name: nest })
-            : t('nest.pausedDetail')}
-      </p>
+    <section
+      className="nest-summary"
+      data-testid="nest-summary"
+      data-state={nest.state}
+      aria-live="polite"
+    >
+      <KuekiMascot state={nest.mascot} alt={t('nest.alt')} />
+      <div>
+        <h2>{nest.title}</h2>
+        <p>{nest.detail}</p>
+      </div>
     </section>
   );
 }
@@ -326,7 +354,7 @@ function MuteToggle({ room, device }: { room: ReturnType<typeof useRoom>; device
       onClick={() => void room.toggleMute(device.id)}
     >
       {muted ? <AlertMutedIcon size={17} /> : <AlertIcon size={17} />}
-      {muted ? t('mute.muted') : t('mute.mute')}
+      <span>{muted ? t('mute.muted') : t('mute.mute')}</span>
     </Button>
   );
 }
@@ -350,13 +378,19 @@ function Sensitivity({
   const { settings } = useRoom();
   return (
     <div className="sensitivity">
-      <label htmlFor={id}>
-        {t('sensitivity.label')} <span>{t(SENSITIVITY_KEYS[value - 1]!)}</span>
-      </label>
+      {/* With an explicit label the slider sits under a disclosure that already names it and
+          shows the level, so a visible heading would repeat it. */}
+      {!label && (
+        <label htmlFor={id}>
+          {t('sensitivity.label')} <span>{t(SENSITIVITY_KEYS[value - 1]!)}</span>
+        </label>
+      )}
       <Slider
         id={id}
         data-testid={testId}
         aria-label={label}
+        aria-describedby={`${id}-description`}
+        aria-valuetext={t(SENSITIVITY_KEYS[value - 1]!)}
         min="1"
         max="3"
         step="1"
@@ -367,17 +401,33 @@ function Sensitivity({
         }
         onChange={(event) => onChange(Number(event.target.value))}
       />
-      {id === 'sensitivity' && (
-        <Caption>
-          {t('sensitivity.hint', {
-            after: settings.alertAfterMs
-              ? t('sensitivity.hintAfter', { duration: durationText(settings.alertAfterMs) })
-              : t('sensitivity.hintInstant'),
-            cooldown: durationText(settings.cooldownMs),
-          })}
-        </Caption>
-      )}
+      <Caption id={`${id}-description`}>
+        {t(
+          value === 1
+            ? 'sensitivity.lowDetail'
+            : value === 3
+              ? 'sensitivity.highDetail'
+              : 'sensitivity.mediumDetail',
+        )}
+      </Caption>
+      <Caption>
+        {t('sensitivity.hint', {
+          after: settings.alertAfterMs
+            ? t('sensitivity.hintAfter', { duration: durationText(settings.alertAfterMs) })
+            : t('sensitivity.hintInstant'),
+          cooldown: durationText(settings.cooldownMs),
+        })}
+      </Caption>
     </div>
+  );
+}
+
+function needsExplaining(status?: AudioStatus): status is AudioStatus {
+  return (
+    status === 'connecting' ||
+    status === 'paused' ||
+    status === 'disconnected' ||
+    status === 'failed'
   );
 }
 

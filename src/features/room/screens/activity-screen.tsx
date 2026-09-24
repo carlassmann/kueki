@@ -1,33 +1,74 @@
+import { useState } from 'react';
+import { Dialog } from '../../../components/ui/dialog';
+import { Notice } from '../../../components/ui/notice';
+import { durationText, errorMessage } from '../../../format';
 import { ConnectionIcon, SoundIcon } from '../../../icons';
 import { useRoom } from '../room-context';
 import { T, useIntl, useLocale } from '../../../intl/setup';
 import { Button } from '../../../components/ui/button';
 import './activity-screen.css';
 import { Caption } from '../../../components/ui/text';
+import { KuekiMascot } from '../../../KuekiMascot';
+
+/** "Today", "Yesterday", or a short date, so a night's events read at a glance. */
+function eventDay(at: number, locale: string, now = new Date()) {
+  const startOfDay = (date: Date) =>
+    new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const daysAgo = Math.round((startOfDay(now) - startOfDay(new Date(at))) / 86_400_000);
+  if (daysAgo > 1)
+    return new Date(at).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+  const label = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(-daysAgo, 'day');
+  return label.charAt(0).toLocaleUpperCase(locale) + label.slice(1);
+}
 
 export function ActivityScreen() {
   const t = useIntl();
   const locale = useLocale();
-  const { events, isBaby, clearEvents } = useRoom();
+  const { events, isBaby, clearEvents, settings, connected } = useRoom();
+  const [confirming, setConfirming] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [error, setError] = useState('');
+  async function confirmClear() {
+    setClearing(true);
+    setError('');
+    try {
+      await clearEvents();
+      setConfirming(false);
+    } catch (error) {
+      setError(errorMessage(error));
+    } finally {
+      setClearing(false);
+    }
+  }
 
   return (
-    <section className="side-card activity">
+    <section className="activity">
       <div className="section-heading">
-        <h3>{t('activity.title')}</h3>
-        <Caption as="span">{t('activity.last24h')}</Caption>
+        <div>
+          <h2>{t('activity.title')}</h2>
+          <Caption as="span" data-testid="activity-window">
+            {settings.retentionMs === 86_400_000
+              ? t('activity.last24h')
+              : t('activity.window', { duration: durationText(settings.retentionMs) })}
+          </Caption>
+        </div>
         {!isBaby && events.length > 0 && (
           <Button
             variant="quiet"
             size="small"
             data-testid="clear-activity"
-            onClick={() => void clearEvents()}
+            disabled={!connected}
+            onClick={() => {
+              setError('');
+              setConfirming(true);
+            }}
           >
             {t('activity.clear')}
           </Button>
         )}
       </div>
       {events.length ? (
-        <div className="event-list">
+        <div className="event-list side-card">
           {events.map((event) => (
             <div
               className="event"
@@ -49,9 +90,10 @@ export function ActivityScreen() {
                 </strong>
                 <span>{event.name}</span>
               </div>
-              <time>
+              <time dateTime={new Date(event.at).toISOString()}>
+                <span className="event-date">{eventDay(event.at, locale)}</span>
                 {new Date(event.at).toLocaleTimeString(locale, {
-                  hour: '2-digit',
+                  hour: 'numeric',
                   minute: '2-digit',
                 })}
               </time>
@@ -60,10 +102,42 @@ export function ActivityScreen() {
         </div>
       ) : (
         <div className="empty-events" data-testid="activity-empty">
+          <KuekiMascot className="empty-events-mascot" state="quiet" alt="" />
           <p>
             <T k="activity.empty" components={{ br: () => <br /> }} />
           </p>
         </div>
+      )}
+      {confirming && (
+        <Dialog
+          title={t('activity.clearTitle')}
+          testId="clear-activity-dialog"
+          close={() => {
+            if (!clearing) setConfirming(false);
+          }}
+        >
+          <p>{t('activity.clearBody')}</p>
+          {error && <Notice role="alert">{error}</Notice>}
+          <Button
+            variant="primary"
+            full
+            tone="danger"
+            data-testid="confirm-clear-activity"
+            disabled={clearing || !connected}
+            onClick={() => void confirmClear()}
+          >
+            {t('activity.clear')}
+          </Button>
+          <Button
+            variant="secondary"
+            full
+            data-testid="keep-activity"
+            disabled={clearing}
+            onClick={() => setConfirming(false)}
+          >
+            {t('activity.keep')}
+          </Button>
+        </Dialog>
       )}
     </section>
   );

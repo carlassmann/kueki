@@ -2,6 +2,6 @@
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
-  border-radius: 18px;
+  border-radius: var(--radius);
   background: #000;
 }

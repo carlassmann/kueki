@@ -2,11 +2,24 @@
   /* Every trailing control claims the same square hit area, so glyphs of very
      different sizes (7px dot, 16px sun, 18px plus) share one optical center. */
   --room-control-size: 44px;
-  --room-control-gap: 6px;
+  --room-control-gap: 4px;
 
   display: flex;
   align-items: center;
   gap: var(--room-control-gap);
+}
+
+.room-tools .room-tool {
+  width: var(--room-control-size);
+  height: var(--room-control-size);
+  --button-ink: var(--ink);
+  --button-surface: var(--control);
+  --button-shadow: 0 0 0 var(--hairline) var(--line-strong);
+}
+
+.room-tools .room-tool[aria-pressed='true'] {
+  --button-ink: var(--primary);
+  --button-surface: var(--primary-soft);
 }
 
 .room-header {
@@ -28,15 +41,16 @@
   height: 32px;
 }
 
+/* The switcher truncates the room name itself, so its chevron always stays visible. Letting the
+   heading ellipsize instead left a stray ".." after the chevron. */
 .room-header h1 {
   min-width: 0;
-  overflow: hidden;
+  display: flex;
   font-family: inherit;
-  font-size: 19px;
+  font-size: var(--text-lg);
   font-weight: 600;
   letter-spacing: -0.02em;
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .room-navigation {
@@ -57,9 +71,9 @@
   justify-content: center;
   gap: 7px;
   padding: 0 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 500;
   transition:
     color 200ms var(--ease-out),
@@ -105,11 +119,15 @@
   /* The dark pill has to carry the active state on its own, so it stays well
      above 3:1 against the nav rather than blending into it. */
   .room-navigation a[aria-current='page'] {
+    color: color-mix(in srgb, var(--primary) 60%, var(--ink));
     background: linear-gradient(
       180deg,
-      color-mix(in srgb, var(--ink) 40%, var(--surface-raised)),
-      color-mix(in srgb, var(--ink) 34%, var(--surface-raised))
+      color-mix(in srgb, var(--primary) 30%, var(--surface-raised)),
+      color-mix(in srgb, var(--primary) 22%, var(--surface-raised))
     );
+    box-shadow:
+      0 0 0 var(--hairline) color-mix(in srgb, var(--primary) 35%, transparent),
+      var(--shadow-1);
   }
 }
 
@@ -117,7 +135,7 @@
   .room-header {
     min-height: 74px;
     grid-template-columns: 28px minmax(0, 1fr) auto;
-    gap: 11px;
+    gap: 8px;
   }
   .room-brand img {
     width: 28px;
@@ -125,13 +143,14 @@
   }
   .room-navigation {
     position: fixed;
+    justify-self: stretch;
     z-index: 5;
     right: 16px;
     bottom: max(14px, env(safe-area-inset-bottom));
     left: 16px;
     padding: 6px;
-    border-radius: 22px;
-    background: color-mix(in srgb, var(--surface) 72%, transparent);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
     box-shadow:
       0 0 0 var(--hairline) var(--line),
       0 1px 0 rgb(255 255 255 / 40%) inset,
@@ -145,14 +164,15 @@
     flex-direction: column;
     gap: 3px;
     padding: 5px 10px;
-    border-radius: 17px;
-    font-size: 12px;
+    border-radius: var(--radius);
+    font-size: var(--text-xs);
     letter-spacing: -0.005em;
   }
 }
 
 @media (max-width: 680px) {
-  .room-header .room-tools .invite-device-button {
+  .room-header .room-tools .invite-device-button,
+  .room-header .room-tools .room-tool {
     width: var(--room-control-size);
     height: var(--room-control-size);
     padding: 0;

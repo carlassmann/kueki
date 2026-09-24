@@ -4,7 +4,7 @@
 
 From any parent device, choose Invite device, then Copy invite link. Whoever opens it picks Me, names their device, and joins. They can listen live and enable notifications.
 
-The invitation also carries a QR code containing the raw code. Scan it and paste the code into Join a room, or use Join a room, Scan QR code to open the camera and fill it in directly. The camera stops on scan or close, and manual entry stays available if permission is denied.
+The invitation carries a QR code containing the invitation link. Scan it with the other phone’s camera to open the join screen directly. Join a room, Scan QR code also accepts invitation links and older raw-code QRs. The camera stops on scan or close, and manual entry stays available if permission is denied.
 
 Invitations never expire on their own. If the device already belongs to another room, Kueki asks whether to switch first, and keeps the previous membership saved.
 

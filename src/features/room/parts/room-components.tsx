@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { errorMessage } from '../../../format';
 import { meterFraction } from '../../../noise';
 import { useIntl } from '../../../intl/setup';
@@ -8,18 +8,26 @@ import { Notice } from '../../../components/ui/notice';
 
 const METER_BAR_COUNT = 36;
 
-export function AudioMeter({ value }: { value: number }) {
+export function AudioMeter({ value, threshold }: { value: number; threshold?: number }) {
   const t = useIntl();
   const fraction = meterFraction(value);
   return (
     <div
       className="meter"
+      style={
+        threshold
+          ? ({ '--meter-threshold': `${meterFraction(threshold) * 100}%` } as CSSProperties)
+          : undefined
+      }
       role="meter"
       aria-label={t('common.audioLevel')}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(fraction * 100)}
     >
+      {threshold && (
+        <i className="meter-threshold" title={t('sensitivity.threshold')} aria-hidden="true" />
+      )}
       {Array.from({ length: METER_BAR_COUNT }, (_, index) => (
         <span
           key={index}

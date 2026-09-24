@@ -3,7 +3,7 @@
   align-items: center;
   gap: 7px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 [data-ui='status'] i {

@@ -1,6 +1,6 @@
 [data-ui='caption'] {
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.55;
 }
 

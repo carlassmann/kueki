@@ -3,17 +3,38 @@ import { messages, translate } from '@ccssmnn/intl';
 export { baseRoomMessages, deRoomMessages };
 
 const baseRoomMessages = messages({
+  'readiness.title': 'Listening and notifications',
+  'readiness.audioOn': 'Live audio on · {$count}',
+  'readiness.audioOff': 'Live audio off',
+  'readiness.notificationsOn': 'Notifications on',
+  'readiness.notificationsOff': 'Notifications off',
+  'readiness.install': 'Install for notifications',
+  'nest.titleUnknown': 'Monitoring status unknown',
+  'nest.unknownDetail': 'Connection lost. Check your baby devices.',
+  'nest.coverage': '{$count} of {$total} devices monitoring',
+  'nest.deviceOffline': '{$name} disconnected',
+  'nest.devicePaused': '{$name} paused',
+  'sensitivity.lowDetail': 'Louder sounds only',
+  'sensitivity.mediumDetail': 'Everyday sounds',
+  'sensitivity.highDetail': 'Quieter sounds too',
+  'sensitivity.threshold': 'Alert threshold',
+  'activity.window': 'Last {$duration}',
+  'activity.clearTitle': 'Clear activity for everyone?',
+  'activity.clearBody':
+    'This deletes the sound and connection history for this room on every device. It cannot be undone.',
+  'activity.keep': 'Keep activity',
+
   'mic.https': 'Microphone needs HTTPS or localhost. Open Kueki using a secure address.',
   'mic.stopped': 'Microphone stopped. Restart monitoring.',
   'mic.interrupted': 'Microphone interrupted. Keep Kueki open, then restart monitoring.',
   'mic.suspended': 'Audio was suspended. Keep Kueki open and restart monitoring.',
 
-  'audio.connecting': 'Connecting audio',
+  'audio.connecting': 'Connecting audio…',
   'audio.live': 'Listening live',
-  'audio.paused': 'Tap Resume audio to hear your baby.',
+  'audio.paused': 'Playback paused.',
   'audio.stopped': 'Audio stopped',
-  'audio.disconnected': 'Audio disconnected. Tap Listen to reconnect.',
-  'audio.failed': 'Could not connect. Try again; different networks may need TURN.',
+  'audio.disconnected': 'Audio interrupted.',
+  'audio.failed': 'Audio could not reconnect. Check the connection and try again.',
 
   'status.connecting': 'Connecting',
   'status.connected': 'Connected',
@@ -42,7 +63,7 @@ const baseRoomMessages = messages({
   'notice.openElsewhere':
     'This device is open in another tab. Close this tab or reload to use Kueki here.',
   'notice.connectionUnavailable':
-    'Connection unavailable. Monitoring alerts cannot reach you. Check your baby and your connection; Kueki is reconnecting.',
+    'Connection lost. Alerts can’t reach you until Kueki reconnects, so check on your baby.',
   'notice.dismiss': 'Dismiss notification',
   'notice.leaveRoom': 'Leave this room',
 
@@ -73,11 +94,12 @@ const baseRoomMessages = messages({
   'monitor.awakeOn': 'Screen staying awake',
   'monitor.awakeOff': 'Screen wake lock off',
   'monitor.parentsOnline':
-    '.input {$count :number} .match $count one {{one parent device online}} * {{{$count} parent devices online}}',
+    '.input {$count :number} .match $count one {{One parent device online}} * {{{$count} parent devices online}}',
   'monitor.keepAwake': 'Keep the screen awake manually. Automatic screen wake lock is unavailable.',
 
   'monitor.dim': 'Dim screen',
   'monitor.restoreBrightness': 'Restore brightness',
+  'monitor.nightHint': 'Tap to brighten',
 
   'parent.emptyAlt': 'Kueki waiting for a baby device',
   'parent.emptyTitle': 'Add your baby device',
@@ -85,10 +107,10 @@ const baseRoomMessages = messages({
     'Add a device to stay with your baby.{#br}{/br}Open the invitation on the phone that stays in the nursery.',
   'parent.emptyInvite': 'Invite a baby device',
 
-  'parent.deviceUnknown': 'Connection unknown',
-  'parent.deviceOffline': 'Offline · check device',
+  'parent.deviceUnknown': 'Status unknown',
+  'parent.deviceOffline': 'Offline',
   'parent.deviceMonitoring': 'Monitoring',
-  'parent.devicePaused': 'Monitoring paused',
+  'parent.devicePaused': 'Paused',
   'parent.deviceSensitivity': '{$name} sound sensitivity',
   'parent.deviceLastSound': 'Last sound {$time}',
   'parent.deviceNoSounds': 'No sounds detected yet',
@@ -99,10 +121,11 @@ const baseRoomMessages = messages({
   'nest.alt': 'Kueki watching over the nest',
   'nest.titleSound': 'A little sound',
   'nest.titleQuiet': 'All quiet',
-  'nest.titlePaused': 'Nobody listening',
+  'nest.titlePaused': 'Monitoring paused',
   'nest.soundDetail': '{$name} is picking up some noise.',
   'nest.quietDetail': 'Kueki is keeping watch over {$name}.',
-  'nest.pausedDetail': 'Start monitoring on the baby device so Kueki can listen in.',
+  'nest.pausedDetail': 'Start monitoring on {$name} so Kueki can listen in.',
+  'nest.offlineDetail': 'Check that {$name} is charged and online.',
   'nest.fallbackBaby': 'A baby device',
   'nest.theNest': 'the nest',
 
@@ -178,18 +201,39 @@ const baseRoomMessages = messages({
 });
 
 const deRoomMessages = translate(baseRoomMessages, {
+  'readiness.title': 'Zuhören und Benachrichtigungen',
+  'readiness.audioOn': 'Live-Audio an · {$count}',
+  'readiness.audioOff': 'Live-Audio aus',
+  'readiness.notificationsOn': 'Benachrichtigungen an',
+  'readiness.notificationsOff': 'Benachrichtigungen aus',
+  'readiness.install': 'Für Benachrichtigungen installieren',
+  'nest.titleUnknown': 'Überwachungsstatus unbekannt',
+  'nest.unknownDetail': 'Verbindung verloren. Prüfe deine Babygeräte.',
+  'nest.coverage': '{$count} von {$total} Geräten überwachen',
+  'nest.deviceOffline': '{$name} getrennt',
+  'nest.devicePaused': '{$name} pausiert',
+  'sensitivity.lowDetail': 'Nur lautere Geräusche',
+  'sensitivity.mediumDetail': 'Alltägliche Geräusche',
+  'sensitivity.highDetail': 'Auch leisere Geräusche',
+  'sensitivity.threshold': 'Alarmschwelle',
+  'activity.window': 'Letzte {$duration}',
+  'activity.clearTitle': 'Aktivität für alle löschen?',
+  'activity.clearBody':
+    'Der Geräusch- und Verbindungsverlauf dieses Raums wird auf allen Geräten gelöscht. Das lässt sich nicht rückgängig machen.',
+  'activity.keep': 'Aktivität behalten',
+
   'mic.https': 'Das Mikrofon benötigt HTTPS oder localhost. Öffne Kueki über eine sichere Adresse.',
   'mic.stopped': 'Mikrofon gestoppt. Starte die Überwachung neu.',
   'mic.interrupted': 'Mikrofon unterbrochen. Lass Kueki geöffnet und starte die Überwachung neu.',
   'mic.suspended': 'Audio wurde ausgesetzt. Lass Kueki geöffnet und starte die Überwachung neu.',
 
-  'audio.connecting': 'Audio wird verbunden',
+  'audio.connecting': 'Audio wird verbunden…',
   'audio.live': 'Live zuhören',
-  'audio.paused': 'Tippe auf „Audio fortsetzen“, um dein Baby zu hören.',
+  'audio.paused': 'Wiedergabe pausiert.',
   'audio.stopped': 'Audio gestoppt',
-  'audio.disconnected': 'Audio getrennt. Tippe auf „Zuhören“, um erneut zu verbinden.',
+  'audio.disconnected': 'Audio unterbrochen.',
   'audio.failed':
-    'Verbindung nicht möglich. Versuch es erneut; verschiedene Netzwerke brauchen evtl. TURN.',
+    'Audio konnte nicht verbunden werden. Prüfe die Verbindung und versuch es erneut.',
 
   'status.connecting': 'Verbinden',
   'status.connected': 'Verbunden',
@@ -219,7 +263,7 @@ const deRoomMessages = translate(baseRoomMessages, {
   'notice.openElsewhere':
     'Dieses Gerät ist in einem anderen Tab geöffnet. Schließe diesen Tab oder lade neu, um Kueki hier zu verwenden.',
   'notice.connectionUnavailable':
-    'Verbindung nicht verfügbar. Hinweise können dich nicht erreichen. Prüfe dein Baby und deine Verbindung; Kueki verbindet sich erneut.',
+    'Verbindung verloren. Bis Kueki wieder verbunden ist, erreichen dich keine Hinweise. Schau nach deinem Baby.',
   'notice.dismiss': 'Hinweis schließen',
   'notice.leaveRoom': 'Diesen Raum verlassen',
 
@@ -250,12 +294,13 @@ const deRoomMessages = translate(baseRoomMessages, {
   'monitor.awakeOn': 'Bildschirm bleibt wach',
   'monitor.awakeOff': 'Bildschirm-Wachhalten aus',
   'monitor.parentsOnline':
-    '.input {$count :number} .match $count one {{ein Elterngerät online}} * {{{$count} Elterngeräte online}}',
+    '.input {$count :number} .match $count one {{Ein Elterngerät online}} * {{{$count} Elterngeräte online}}',
   'monitor.keepAwake':
     'Halte den Bildschirm manuell wach. Automatisches Wachhalten ist nicht verfügbar.',
 
   'monitor.dim': 'Bildschirm dimmen',
   'monitor.restoreBrightness': 'Helligkeit zurücksetzen',
+  'monitor.nightHint': 'Tippen zum Aufhellen',
 
   'parent.emptyAlt': 'Kueki wartet auf ein Babygerät',
   'parent.emptyTitle': 'Füge dein Babygerät hinzu',
@@ -263,10 +308,10 @@ const deRoomMessages = translate(baseRoomMessages, {
     'Füge ein Gerät hinzu, das bei deinem Baby bleibt.{#br}{/br}Öffne die Einladung auf dem Handy, das im Kinderzimmer bleibt.',
   'parent.emptyInvite': 'Babygerät einladen',
 
-  'parent.deviceUnknown': 'Verbindung unbekannt',
-  'parent.deviceOffline': 'Offline · Gerät prüfen',
+  'parent.deviceUnknown': 'Status unbekannt',
+  'parent.deviceOffline': 'Offline',
   'parent.deviceMonitoring': 'Überwachung läuft',
-  'parent.devicePaused': 'Überwachung pausiert',
+  'parent.devicePaused': 'Pausiert',
   'parent.deviceSensitivity': 'Geräuschempfindlichkeit von {$name}',
   'parent.deviceLastSound': 'Letztes Geräusch {$time}',
   'parent.deviceNoSounds': 'Noch keine Geräusche erkannt',
@@ -277,15 +322,16 @@ const deRoomMessages = translate(baseRoomMessages, {
   'nest.alt': 'Kueki wacht über das Nest',
   'nest.titleSound': 'Ein leises Geräusch',
   'nest.titleQuiet': 'Alles still',
-  'nest.titlePaused': 'Niemand hört zu',
+  'nest.titlePaused': 'Überwachung pausiert',
   'nest.soundDetail': '{$name} nimmt etwas Lärm auf.',
   'nest.quietDetail': 'Kueki wacht über {$name}.',
-  'nest.pausedDetail': 'Starte die Überwachung auf dem Babygerät, damit Kueki zuhören kann.',
+  'nest.pausedDetail': 'Starte die Überwachung auf {$name}, damit Kueki zuhören kann.',
+  'nest.offlineDetail': 'Prüfe, ob {$name} geladen und online ist.',
   'nest.fallbackBaby': 'Ein Babygerät',
   'nest.theNest': 'das Nest',
 
-  'mute.muted': 'Hinweise stumm',
-  'mute.mute': 'Hinweise stummschalten',
+  'mute.muted': 'Alarme stumm',
+  'mute.mute': 'Alarme aus',
 
   'sensitivity.label': 'Geräuschempfindlichkeit',
   'sensitivity.low': 'Niedrig',

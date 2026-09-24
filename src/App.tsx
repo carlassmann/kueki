@@ -136,7 +136,9 @@ export function App() {
 
   const pwa = usePwa();
   const appMode = route.pathname.startsWith('/app') || !!incoming;
-  useInstallNudge(pwa, Boolean(session));
+  // A toast over a half-filled setup form covers its submit button, so the nudge waits for a room.
+  const inSetupForm = /^\/app\/(create|join)/.test(route.pathname) || Boolean(incoming);
+  useInstallNudge(pwa, Boolean(session) || inSetupForm);
   function saveSession(value: Session | null) {
     setRooms((current) =>
       storeRooms(

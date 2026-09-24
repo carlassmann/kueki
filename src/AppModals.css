@@ -1,5 +1,6 @@
 .room-switcher {
   min-width: 0;
+  max-width: calc(100% + 10px);
   justify-content: flex-start;
   gap: 6px;
   margin-left: -10px;
@@ -66,12 +67,12 @@
 }
 
 .rooms-popover h2 {
-  font-size: 24px;
+  font-size: var(--text-xl);
 }
 
 .rooms-popover > p {
   margin-top: 4px;
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .rooms-popover .saved-rooms {
@@ -134,7 +135,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {
