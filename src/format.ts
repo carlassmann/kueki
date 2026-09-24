@@ -10,6 +10,39 @@ export function relativeTime(at: number) {
     : translate()('common.relative.minutes', { minutes: Math.floor(seconds / 60) });
 }
 
+const formatters = new Map<string, Intl.DateTimeFormat | Intl.RelativeTimeFormat>();
+function cached<T extends Intl.DateTimeFormat | Intl.RelativeTimeFormat>(
+  key: string,
+  make: () => T,
+) {
+  if (!formatters.has(key)) formatters.set(key, make());
+  return formatters.get(key) as T;
+}
+
+/** "Today", "Yesterday", or a short date, so a night's events read at a glance. */
+export function eventDay(at: number, locale: string, now = new Date()) {
+  const startOfDay = (date: Date) =>
+    new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const daysAgo = Math.round((startOfDay(now) - startOfDay(new Date(at))) / 86_400_000);
+  if (daysAgo > 1)
+    return cached(
+      `date:${locale}`,
+      () => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }),
+    ).format(at);
+  const label = cached(
+    `relative:${locale}`,
+    () => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }),
+  ).format(-daysAgo, 'day');
+  return label.charAt(0).toLocaleUpperCase(locale) + label.slice(1);
+}
+
+export function eventTime(at: number, locale: string) {
+  return cached(
+    `time:${locale}`,
+    () => new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }),
+  ).format(at);
+}
+
 export function durationText(ms: number) {
   const t = translate();
   if (ms === 0) return t('alerts.instant');

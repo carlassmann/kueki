@@ -22,16 +22,16 @@ import {
 } from './parts/room-notices';
 import { DeviceSettingsModal, InvitationModal, LeaveRoomConfirmation } from './parts/room-modals';
 import { NightView } from './parts/night-view';
-import { RoomProvider } from './room-context';
+import { RoomProvider, type RoomModel } from './room-context';
 import { SENSITIVITY_THRESHOLDS } from '../../noise';
 import { recentEvent } from './lib/recent-event';
+import { RECENT_SOUND_MS } from './lib/nest-state';
 import { useIntl } from '../../intl/setup';
 import './room.css';
 import { Notice } from '../../components/ui/notice';
 import { Button } from '../../components/ui/button';
 
 const AUDIO_ACTIVE_STATUSES: AudioStatus[] = ['connecting', 'live', 'paused'];
-const RECENT_EVENT_MS = 60_000;
 export function Room({
   session,
   save,
@@ -220,7 +220,9 @@ export function Room({
           signals = signals
             .then(() => calls.receive(data.source, data.payload))
             .catch((error) => {
-              calls.stop(data.source);
+              // 'interrupted' tells the other side this was a failure, not a choice to stop, so a
+              // parent shows it and offers a retry instead of quietly dropping the baby.
+              calls.stop(data.source, 'interrupted');
               // A failed call waits for the user to retry. Left at '' the retry effect would
               // re-offer immediately, and the same signal would fail again in a tight loop.
               if (!isBaby) setAudioStatuses((current) => ({ ...current, [data.source]: 'failed' }));
@@ -427,121 +429,133 @@ export function Room({
   const mutedBabies = babies
     .filter((device) => device.mutedBy.includes(session.deviceId))
     .map((device) => device.id);
-  const latestEvent = recentEvent(
-    events.filter((event) => {
-      if (mutedBabies.includes(event.deviceId)) return false;
-      if (event.kind === 'noise') return true;
-      const device = babies.find((candidate) => candidate.id === event.deviceId);
-      if (!device) return false;
-      return event.kind === 'offline' ? !device.online : device.online && !device.monitoring;
-    }),
-    dismissedEventsThrough,
-    Date.now(),
-    RECENT_EVENT_MS,
-  );
+  // Baby devices never show event notices, so they skip the scan on every level update.
+  const latestEvent = isBaby
+    ? undefined
+    : recentEvent(
+        events.filter((event) => {
+          if (mutedBabies.includes(event.deviceId)) return false;
+          if (event.kind === 'noise') return true;
+          const device = babies.find((candidate) => candidate.id === event.deviceId);
+          if (!device) return false;
+          return event.kind === 'offline' ? !device.online : device.online && !device.monitoring;
+        }),
+        dismissedEventsThrough,
+        Date.now(),
+        RECENT_SOUND_MS,
+      );
   const parents = devices.filter((device) => device.role === 'parent' && device.online);
-  // A lost connection or an error needs the full screen, so the night view steps aside. It stays
-  // through the brief 'Connecting' of a reload or reconnect, which would otherwise flash the room.
-  const nightView = dim && !error && (connected || connection === 'Connecting');
-  return (
-    <main className="room">
-      <div ref={audioRef} hidden />
-      <RoomHeader
-        inert={nightView}
-        roomName={session.roomName}
-        roomSwitcher={roomSwitcher}
-        onInvite={() => setModal('invite')}
-        dimmed={dim}
-        onToggleDim={() => setDim(!dim)}
-        indicator={
-          <ConnectionIndicator
-            connected={connected}
-            connection={connection}
-            parentAwake={parentAwake}
-          />
-        }
-      />
-      {/* Behind the night view the room is hidden, so it must not take focus or speak either. */}
-      <div className="room-alerts" inert={nightView}>
-        {/* One notice at a time, most urgent first: stacked banners pushed the room itself off
-            a phone screen. On Monitor the nest summary already tells the same story. */}
-        {!connected ? (
-          <ConnectionNotice
-            connection={connection}
-            onLeave={connection === 'Access removed' ? () => setModal('leave-removed') : undefined}
-          />
-        ) : error ? (
-          <ErrorNotice error={error} onDismiss={() => setError('')} />
-        ) : !isBaby && latestEvent && !onMonitor ? (
+  // A lost connection or an error needs the parent's full screen, so the night view steps aside.
+  // It stays through the brief 'Connecting' of a reload or reconnect, which would otherwise flash
+  // the room. A baby device keeps listening on its own, and lighting up the nursery helps no one.
+  const nightView = dim && !error && (isBaby || connected || connection === 'Connecting');
+  const roomModel: RoomModel = {
+    accessNotice,
+    active,
+    audioStatuses,
+    awake,
+    babies,
+    busy,
+    connected,
+    devices,
+    events,
+    isBaby,
+    installRequired: pwa.notificationsNeedInstall,
+    level,
+    mutedBabies,
+    parents,
+    preferences,
+    pushEnabled: push,
+    pushTestMessage: pushTest,
+    sensitivity,
+    session,
+    settings,
+    changeRoomSettings,
+    changeSensitivity,
+    clearEvents,
+    enableNotifications: notify,
+    openInstallGuide: pwa.openInstallGuide,
+    listenTo,
+    openInvitation: () => setModal('invite'),
+    openSettings: () => setModal('settings'),
+    removeDevice: (deviceId) => void manageAccess(deviceId).then(setError),
+    resumeAudio,
+    stopListening: stopListeningTo,
+    testNotification,
+    toggleDim: () => setDim(!dim),
+    toggleMute,
+    toggleMonitoring,
+  };
+  function notice() {
+    // One notice at a time, most urgent first: stacked banners pushed the room itself off a phone
+    // screen. On Monitor the nest summary already tells the same story as an event would.
+    if (!connected)
+      return (
+        <ConnectionNotice
+          connection={connection}
+          onLeave={connection === 'Access removed' ? () => setModal('leave-removed') : undefined}
+        />
+      );
+    if (error) return <ErrorNotice error={error} onDismiss={() => setError('')} />;
+    if (!onMonitor)
+      return (
+        !isBaby &&
+        latestEvent && (
           <EventNotice
             event={latestEvent}
             onDismiss={() => setDismissedEventsThrough(latestEvent.at)}
           />
-        ) : !onMonitor ? null : wakeWaiting ? (
-          <Notice as="div" data-testid="wake-lock-notice" data-state="tap">
-            <span>{t('room.screenWakeTap')}</span>
-            <Button variant="secondary" size="small" onClick={() => wake.activate()}>
-              {t('room.screenWakeAction')}
-            </Button>
-          </Notice>
-        ) : (
-          !isBaby &&
-          !parentAwake && (
-            <Notice data-testid="wake-lock-notice" data-state="unavailable">
-              {t('room.screenWakeUnavailable')}
-            </Notice>
-          )
-        )}
-      </div>
-      <div className="room-scroll">
-        <div className="room-content">
-          <RoomProvider
-            value={{
-              accessNotice,
-              active,
-              audioStatuses,
-              awake,
-              babies,
-              busy,
-              connected,
-              devices,
-              events,
-              isBaby,
-              installRequired: pwa.notificationsNeedInstall,
-              level,
-              mutedBabies,
-              parents,
-              preferences,
-              pushEnabled: push,
-              pushTestMessage: pushTest,
-              sensitivity,
-              session,
-              settings,
-              changeRoomSettings,
-              changeSensitivity,
-              clearEvents,
-              enableNotifications: notify,
-              openInstallGuide: pwa.openInstallGuide,
-              listenTo,
-              openInvitation: () => setModal('invite'),
-              openSettings: () => setModal('settings'),
-              removeDevice: (deviceId) => void manageAccess(deviceId).then(setError),
-              resumeAudio,
-              stopListening: stopListeningTo,
-              testNotification,
-              toggleDim: () => setDim(!dim),
-              toggleMute,
-              toggleMonitoring,
-            }}
-          >
-            <div className="room-grid" inert={nightView}>
-              <Outlet />
+        )
+      );
+    if (wakeWaiting)
+      return (
+        <Notice as="div" data-testid="wake-lock-notice" data-state="tap">
+          <span>{t('room.screenWakeTap')}</span>
+          <Button variant="secondary" size="small" onClick={() => wake.activate()}>
+            {t('room.screenWakeAction')}
+          </Button>
+        </Notice>
+      );
+    if (!parentAwake && !isBaby)
+      return (
+        <Notice data-testid="wake-lock-notice" data-state="unavailable">
+          {t('room.screenWakeUnavailable')}
+        </Notice>
+      );
+    return null;
+  }
+  return (
+    <main className="room">
+      <div ref={audioRef} hidden />
+      <RoomProvider value={roomModel}>
+        {/* Behind the night view the room is hidden, so it must not take focus or speak either. */}
+        <div className="room-body" inert={nightView}>
+          <RoomHeader
+            roomName={session.roomName}
+            roomSwitcher={roomSwitcher}
+            onInvite={() => setModal('invite')}
+            dimmed={dim}
+            onToggleDim={roomModel.toggleDim}
+            indicator={
+              <ConnectionIndicator
+                connected={connected}
+                connection={connection}
+                parentAwake={parentAwake}
+              />
+            }
+          />
+          <div className="room-alerts">{notice()}</div>
+          <div className="room-scroll">
+            <div className="room-content">
+              <div className="room-grid">
+                <Outlet />
+              </div>
+              {pwa.error && <Notice>{pwa.error}</Notice>}
             </div>
-            {nightView && <NightView screenAwake={isBaby ? !active || awake : wake.awake} />}
-          </RoomProvider>
-          {pwa.error && <Notice>{pwa.error}</Notice>}
+          </div>
         </div>
-      </div>
+        {nightView && <NightView screenAwake={isBaby ? !active || awake : wake.awake} />}
+      </RoomProvider>
       {modal === 'invite' && (
         <InvitationModal
           accessNotice={accessNotice}

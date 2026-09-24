@@ -139,10 +139,11 @@
   transition-duration: 90ms;
 }
 
-/* A quiet button that reads as an inline link: for secondary paths that should not compete with
-   the form's own choices. */
-[data-ui='button'].text-link {
-  --button-surface: transparent;
+/* Reads as an inline link: for secondary paths that should not compete with the form's own
+   choices. */
+[data-ui='button'][data-variant='link'] {
+  --button-ink: var(--muted);
+  padding-inline: 0;
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
   text-underline-offset: 3px;

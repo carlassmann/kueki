@@ -5,6 +5,7 @@ import { readSession } from './sessions';
 import { useIntl } from './intl/setup';
 import { buttonLook } from './components/ui/button';
 import { KuekiMascot } from './KuekiMascot';
+import { parseInvitation } from './invitation-link';
 
 function NotFoundScreen() {
   const t = useIntl();
@@ -29,7 +30,7 @@ const landing = createRoute({
   path: '/',
   component: LandingScreen,
   beforeLoad: ({ location }) => {
-    if (new URLSearchParams(location.hash).has('join'))
+    if (parseInvitation(location.hash).code)
       throw redirect({ to: '/app/join', hash: location.hash, replace: true });
   },
 });

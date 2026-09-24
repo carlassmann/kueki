@@ -6,6 +6,11 @@
   overflow: hidden;
 }
 
+/* Only groups the room so the night view can make all of it inert at once; layout stays flat. */
+.room-body {
+  display: contents;
+}
+
 .room-scroll {
   min-height: 0;
   flex: 1;

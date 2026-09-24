@@ -3,6 +3,7 @@ import { Dialog } from './components/ui/dialog';
 import { Notice } from './components/ui/notice';
 import { useIntl } from './intl/setup';
 import './InvitationScanner.css';
+import { parseInvitation } from './invitation-link';
 
 export function InvitationScanner({
   onScan,
@@ -39,7 +40,7 @@ export function InvitationScanner({
             let code = result.getText().trim();
             try {
               const url = new URL(code);
-              code = new URLSearchParams(url.hash.slice(1)).get('join') || '';
+              code = parseInvitation(url.hash).code;
             } catch {}
             if (!/^(?:[a-f0-9]{64}\.)?[A-Za-z0-9_-]{20,128}$/.test(code)) {
               setFailure('invalid');

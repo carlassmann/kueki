@@ -1,7 +1,6 @@
 import { KuekiMascot } from '../../../KuekiMascot';
 import { useIntl } from '../../../intl/setup';
-import { SENSITIVITY_THRESHOLDS } from '../../../noise';
-import { describeNest } from '../lib/nest-state';
+import { describeBaby, describeNest } from '../lib/nest-state';
 import { useRoom } from '../room-context';
 import './night-view.css';
 
@@ -13,7 +12,11 @@ export function NightView({ screenAwake }: { screenAwake: boolean }) {
   const reading = room.isBaby ? describeBaby(room, t) : describeParent(room, t);
 
   return (
-    <div className="night-view" data-testid="night-view" data-state={reading.state}>
+    <div
+      className="night-view"
+      data-testid="night-view"
+      data-state={reading.mascot === 'sound' ? 'sound' : reading.state}
+    >
       <KuekiMascot state={reading.mascot} alt="" />
       <strong>{reading.title}</strong>
       {/* A dark screen that goes to sleep stops monitoring, so a missing wake lock stays visible. */}
@@ -34,13 +37,4 @@ export function NightView({ screenAwake }: { screenAwake: boolean }) {
 function describeParent(room: ReturnType<typeof useRoom>, t: ReturnType<typeof useIntl>) {
   const nest = describeNest(room.babies, room.connected, t);
   return nest.hearing ? { ...nest, state: 'sound', title: t('nest.titleSound') } : nest;
-}
-
-function describeBaby(room: ReturnType<typeof useRoom>, t: ReturnType<typeof useIntl>) {
-  const sound = room.active && room.level >= SENSITIVITY_THRESHOLDS[room.sensitivity - 1]!;
-  return {
-    state: room.active ? (sound ? 'sound' : 'quiet') : 'paused',
-    title: room.active ? t('monitor.titleMonitoring') : t('monitor.titleReady'),
-    mascot: room.active ? (sound ? 'sound' : 'quiet') : 'paused',
-  } as const;
 }

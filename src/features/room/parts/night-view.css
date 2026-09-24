@@ -31,7 +31,9 @@
 
 .night-view[data-state='sound'] strong,
 .night-view[data-state='offline'] strong,
-.night-view[data-state='paused'] strong {
+.night-view[data-state='paused'] strong,
+.night-view[data-state='ready'] strong,
+.night-view[data-state='local'] strong {
   color: #c7b98f;
 }
 

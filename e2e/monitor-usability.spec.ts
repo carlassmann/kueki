@@ -256,7 +256,7 @@ test('the night view never reassures over an empty nest, and a replaced invitati
   await expect(page.getByTestId('night-view')).toHaveAttribute('data-state', 'empty');
   await expect(page.getByTestId('night-view')).not.toContainText('All quiet');
   // What sits behind the night view cannot be reached without seeing it.
-  await expect(page.locator('.room-grid')).toHaveAttribute('inert', '');
+  await expect(page.locator('.room-body')).toHaveAttribute('inert', '');
   await page.getByTestId('night-wake').click();
   await expect(page.getByTestId('night-view')).toHaveCount(0);
 

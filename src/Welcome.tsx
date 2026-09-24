@@ -11,7 +11,7 @@ import { Button } from './components/ui/button';
 import './Welcome.css';
 import { Notice } from './components/ui/notice';
 import { codeLook } from './components/ui/text';
-import { invitedRoomName } from './invitation-link';
+import { parseInvitation } from './invitation-link';
 
 // The app shell is sized to the visual viewport, so the bottom edge of the scroll container is the
 // top of the keyboard. 'nearest' therefore scrolls by the smallest amount that clears the keyboard
@@ -49,8 +49,7 @@ export function Welcome({
   useFieldVisibleAboveKeyboard();
   const route = useLocation();
   const navigate = useNavigate();
-  const invited = new URLSearchParams(route.hash.replace(/^#/, '')).get('join') || '';
-  const invitedRoom = invited ? invitedRoomName(route.hash) : '';
+  const { code: invited, roomName: invitedRoom } = parseInvitation(route.hash);
   const legacySetup = new URLSearchParams(route.searchStr).get('setup');
   const mode =
     invited || route.pathname === '/app/join' || legacySetup === 'join'
@@ -180,8 +179,8 @@ export function Welcome({
               <>
                 {invited && (
                   <Button
-                    variant="quiet"
-                    className="text-link change-invitation"
+                    variant="link"
+                    className="change-invitation"
                     data-testid="change-invitation"
                     aria-expanded={editingInvitation}
                     aria-controls="invitation-entry"

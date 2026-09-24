@@ -2,8 +2,9 @@ import type { PublicDevice } from '../../../protocol';
 import { SENSITIVITY_THRESHOLDS } from '../../../noise';
 import type { useIntl } from '../../../intl/setup';
 
-/** A recorded sound keeps the nest in its "sound" state this long, so the summary agrees with the
-    noise alert and the "last sound" line instead of flipping back to "all quiet" between peaks. */
+/** How long a recorded sound counts as recent: the noise alert shows this long, and the nest stays
+    in its "sound" state for the same window so the two agree instead of the summary flipping back
+    to "all quiet" between peaks. */
 export const RECENT_SOUND_MS = 60_000;
 
 export type NestState = 'unknown' | 'empty' | 'offline' | 'paused' | 'sound' | 'quiet';
@@ -76,4 +77,34 @@ function soundDetail(noisy: PublicDevice[], t: ReturnType<typeof useIntl>) {
   return noisy.length === 1
     ? t('nest.soundDetail', { name: noisy[0]!.name })
     : t('nest.soundDetailMany', { names: noisy.map((device) => device.name).join(', ') });
+}
+
+/** The baby device's own reading, shared by its monitor screen and its night view. */
+export function describeBaby(
+  {
+    active,
+    connected,
+    level,
+    sensitivity,
+  }: {
+    active: boolean;
+    connected: boolean;
+    level: number;
+    sensitivity: number;
+  },
+  t: ReturnType<typeof useIntl>,
+) {
+  const sound = active && level >= SENSITIVITY_THRESHOLDS[sensitivity - 1]!;
+  const state = !active ? 'ready' : connected ? 'monitoring' : 'local';
+  return {
+    sound,
+    state,
+    mascot: !active ? 'paused' : sound ? 'sound' : 'quiet',
+    title:
+      state === 'ready'
+        ? t('monitor.titleReady')
+        : state === 'local'
+          ? t('monitor.statusLocal')
+          : t('monitor.titleMonitoring'),
+  } as const;
 }

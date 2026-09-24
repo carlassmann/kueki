@@ -6,6 +6,11 @@ export function invitationLink(code: string, roomName: string) {
   return `${location.origin}/app/join#${hash}`;
 }
 
-export function invitedRoomName(hash: string) {
-  return new URLSearchParams(hash.replace(/^#/, '')).get('room')?.trim().slice(0, 40) || '';
+/** Reads an invitation back out of a location hash, with or without its leading `#`. */
+export function parseInvitation(hash: string) {
+  const params = new URLSearchParams(hash.replace(/^#/, ''));
+  return {
+    code: params.get('join') || '',
+    roomName: params.get('room')?.trim().slice(0, 40) || '',
+  };
 }

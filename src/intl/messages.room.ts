@@ -32,7 +32,7 @@ const baseRoomMessages = messages({
   'audio.paused': 'Playback paused.',
   'audio.stopped': 'Audio stopped',
   'audio.disconnected': 'Audio interrupted.',
-  'audio.failed': 'Audio could not reconnect. Check the connection and try again.',
+  'audio.failed': 'Audio couldn’t connect. Check the connection and try again.',
 
   'status.connecting': 'Connecting',
   'status.connected': 'Connected',
@@ -123,7 +123,6 @@ const baseRoomMessages = messages({
   'nest.quietDetail': 'Kueki is keeping watch over {$name}.',
   'nest.pausedDetail': 'Start monitoring on {$name} so Kueki can listen in.',
   'nest.offlineDetail': 'Check that {$name} is charged and online.',
-  'nest.fallbackBaby': 'A baby device',
   'nest.theNest': 'the nest',
 
   'mute.muted': 'Alerts muted',
@@ -321,7 +320,6 @@ const deRoomMessages = translate(baseRoomMessages, {
   'nest.quietDetail': 'Kueki wacht über {$name}.',
   'nest.pausedDetail': 'Starte die Überwachung auf {$name}, damit Kueki zuhören kann.',
   'nest.offlineDetail': 'Prüfe, ob {$name} geladen und online ist.',
-  'nest.fallbackBaby': 'Ein Babygerät',
   'nest.theNest': 'das Nest',
 
   'mute.muted': 'Alarme stumm',

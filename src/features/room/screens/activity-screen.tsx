@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Dialog } from '../../../components/ui/dialog';
 import { Notice } from '../../../components/ui/notice';
-import { durationText, errorMessage } from '../../../format';
+import { durationText, errorMessage, eventDay, eventTime } from '../../../format';
 import { ConnectionIcon, SoundIcon } from '../../../icons';
 import { useRoom } from '../room-context';
 import { T, useIntl, useLocale } from '../../../intl/setup';
@@ -9,17 +9,6 @@ import { Button } from '../../../components/ui/button';
 import './activity-screen.css';
 import { Caption } from '../../../components/ui/text';
 import { KuekiMascot } from '../../../KuekiMascot';
-
-/** "Today", "Yesterday", or a short date, so a night's events read at a glance. */
-function eventDay(at: number, locale: string, now = new Date()) {
-  const startOfDay = (date: Date) =>
-    new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-  const daysAgo = Math.round((startOfDay(now) - startOfDay(new Date(at))) / 86_400_000);
-  if (daysAgo > 1)
-    return new Date(at).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
-  const label = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(-daysAgo, 'day');
-  return label.charAt(0).toLocaleUpperCase(locale) + label.slice(1);
-}
 
 export function ActivityScreen() {
   const t = useIntl();
@@ -92,10 +81,7 @@ export function ActivityScreen() {
               </div>
               <time dateTime={new Date(event.at).toISOString()}>
                 <span className="event-date">{eventDay(event.at, locale)}</span>
-                {new Date(event.at).toLocaleTimeString(locale, {
-                  hour: 'numeric',
-                  minute: '2-digit',
-                })}
+                {eventTime(event.at, locale)}
               </time>
             </div>
           ))}

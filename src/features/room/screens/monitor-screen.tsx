@@ -16,7 +16,7 @@ import { AudioMeter } from '../parts/room-components';
 import { useRoom } from '../room-context';
 import { SENSITIVITY_THRESHOLDS } from '../../../noise';
 import { KuekiMascot } from '../../../KuekiMascot';
-import { describeNest } from '../lib/nest-state';
+import { describeBaby, describeNest } from '../lib/nest-state';
 import { T, useIntl } from '../../../intl/setup';
 import type { MessageKey } from '../../../intl/messages';
 import type { AudioStatus } from '../lib/audio-calls';
@@ -27,7 +27,6 @@ import { Status } from '../../../components/ui/status';
 import { Slider } from '../../../components/ui/slider';
 import { Caption } from '../../../components/ui/text';
 
-const AUDIO_ACTIVE_STATUSES: AudioStatus[] = ['connecting', 'live', 'paused'];
 const AUDIO_STATUS_KEYS = {
   connecting: 'audio.connecting',
   live: 'audio.live',
@@ -37,6 +36,11 @@ const AUDIO_STATUS_KEYS = {
   failed: 'audio.failed',
 } as const satisfies Record<Exclude<AudioStatus, ''>, MessageKey>;
 const SENSITIVITY_KEYS = ['sensitivity.low', 'sensitivity.medium', 'sensitivity.high'] as const;
+const SENSITIVITY_DETAIL_KEYS = [
+  'sensitivity.lowDetail',
+  'sensitivity.mediumDetail',
+  'sensitivity.highDetail',
+] as const;
 
 export function MonitorScreen() {
   const room = useRoom();
@@ -50,25 +54,14 @@ export function MonitorScreen() {
 
 function BabyMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
   const t = useIntl();
-  const soundDetected = room.active && room.level >= SENSITIVITY_THRESHOLDS[room.sensitivity - 1]!;
-  const monitoringHereOnly = room.active && !room.connected;
+  const baby = describeBaby(room, t);
 
   return (
     <>
       <div className="monitor-hero">
-        <KuekiMascot
-          state={!room.active ? 'paused' : soundDetected ? 'sound' : 'quiet'}
-          alt={t('monitor.mascotAlt')}
-        />
-        <h2
-          data-testid="monitor-status"
-          data-state={!room.active ? 'ready' : monitoringHereOnly ? 'local' : 'monitoring'}
-        >
-          {!room.active
-            ? t('monitor.titleReady')
-            : monitoringHereOnly
-              ? t('monitor.statusLocal')
-              : t('monitor.titleMonitoring')}
+        <KuekiMascot state={baby.mascot} alt={t('monitor.mascotAlt')} />
+        <h2 data-testid="monitor-status" data-state={baby.state}>
+          {baby.title}
         </h2>
         <p>{room.active ? t('monitor.subtitleMonitoring') : t('monitor.subtitleReady')}</p>
       </div>
@@ -76,8 +69,8 @@ function BabyMonitor({ room }: { room: ReturnType<typeof useRoom> }) {
         <div>
           <span>{t('monitor.roomSound')}</span>
           {room.active && (
-            <span data-sound={soundDetected}>
-              {soundDetected ? t('monitor.levelLittle') : t('monitor.levelQuiet')}
+            <span data-sound={baby.sound}>
+              {baby.sound ? t('monitor.levelLittle') : t('monitor.levelQuiet')}
             </span>
           )}
         </div>
@@ -202,6 +195,8 @@ function BabyDevice({ room, device }: { room: ReturnType<typeof useRoom>; device
   const status = room.audioStatuses[device.id];
   const available = room.connected && device.online && device.monitoring;
   const needsResume = status === 'paused' || status === 'disconnected' || status === 'failed';
+  // Anything but off or stopped means the parent still wants this audio, recovering or not.
+  const listening = Boolean(status) && status !== 'stopped';
   return (
     <article
       className="device-card"
@@ -253,7 +248,7 @@ function BabyDevice({ room, device }: { room: ReturnType<typeof useRoom>; device
             <span>{t('parent.resumeAudio')}</span>
           </Button>
         )}
-        {isListening(status) || needsResume ? (
+        {listening ? (
           <Button
             variant="secondary"
             size="small"
@@ -265,19 +260,17 @@ function BabyDevice({ room, device }: { room: ReturnType<typeof useRoom>; device
             <span>{t('parent.stopListening')}</span>
           </Button>
         ) : (
-          !needsResume && (
-            <Button
-              variant="primary"
-              size="small"
-              data-testid="listen-toggle"
-              data-listening="false"
-              disabled={!available}
-              onClick={() => room.listenTo(device.id)}
-            >
-              <ParentIcon size={18} />
-              <span>{t('parent.listen')}</span>
-            </Button>
-          )
+          <Button
+            variant="primary"
+            size="small"
+            data-testid="listen-toggle"
+            data-listening="false"
+            disabled={!available}
+            onClick={() => room.listenTo(device.id)}
+          >
+            <ParentIcon size={18} />
+            <span>{t('parent.listen')}</span>
+          </Button>
         )}
         <MuteToggle room={room} device={device} />
       </div>
@@ -291,7 +284,7 @@ function BabyDevice({ room, device }: { room: ReturnType<typeof useRoom>; device
         {needsExplaining(status) && (
           <p className="audio-status" role="status">
             <SoundIcon size={17} />
-            {audioStatusLabel(status, t)}
+            {t(AUDIO_STATUS_KEYS[status])}
           </p>
         )}
         <Caption as="span">
@@ -308,6 +301,7 @@ function BabyDevice({ room, device }: { room: ReturnType<typeof useRoom>; device
         <Sensitivity
           id={`sensitivity-${device.id}`}
           testId="device-sensitivity"
+          headed={false}
           label={t('parent.deviceSensitivity', { name: device.name })}
           value={device.sensitivity}
           disabled={!room.connected}
@@ -361,6 +355,7 @@ function MuteToggle({ room, device }: { room: ReturnType<typeof useRoom>; device
 
 function Sensitivity({
   disabled,
+  headed = true,
   id,
   label,
   testId,
@@ -368,6 +363,8 @@ function Sensitivity({
   onChange,
 }: {
   disabled?: boolean;
+  /** Off under a disclosure that already names the setting and shows its level. */
+  headed?: boolean;
   id: string;
   label?: string;
   testId: string;
@@ -378,9 +375,7 @@ function Sensitivity({
   const { settings } = useRoom();
   return (
     <div className="sensitivity">
-      {/* With an explicit label the slider sits under a disclosure that already names it and
-          shows the level, so a visible heading would repeat it. */}
-      {!label && (
+      {headed && (
         <label htmlFor={id}>
           {t('sensitivity.label')} <span>{t(SENSITIVITY_KEYS[value - 1]!)}</span>
         </label>
@@ -401,15 +396,7 @@ function Sensitivity({
         }
         onChange={(event) => onChange(Number(event.target.value))}
       />
-      <Caption id={`${id}-description`}>
-        {t(
-          value === 1
-            ? 'sensitivity.lowDetail'
-            : value === 3
-              ? 'sensitivity.highDetail'
-              : 'sensitivity.mediumDetail',
-        )}
-      </Caption>
+      <Caption id={`${id}-description`}>{t(SENSITIVITY_DETAIL_KEYS[value - 1]!)}</Caption>
       <Caption>
         {t('sensitivity.hint', {
           after: settings.alertAfterMs
@@ -422,19 +409,12 @@ function Sensitivity({
   );
 }
 
-function needsExplaining(status?: AudioStatus): status is AudioStatus {
+/** States the listen button cannot show on its own. */
+function needsExplaining(status?: AudioStatus): status is Exclude<AudioStatus, ''> {
   return (
     status === 'connecting' ||
     status === 'paused' ||
     status === 'disconnected' ||
     status === 'failed'
   );
-}
-
-function isListening(status?: AudioStatus) {
-  return Boolean(status && AUDIO_ACTIVE_STATUSES.includes(status));
-}
-
-function audioStatusLabel(status: AudioStatus, translate: ReturnType<typeof useIntl>) {
-  return status ? translate(AUDIO_STATUS_KEYS[status]) : '';
 }

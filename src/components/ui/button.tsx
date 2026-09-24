@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react';
 import './button.css';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'soft' | 'quiet' | 'icon';
+export type ButtonVariant = 'primary' | 'secondary' | 'soft' | 'quiet' | 'link' | 'icon';
 export type ButtonTone = 'default' | 'danger';
 export type ButtonSize = 'medium' | 'small';
 
