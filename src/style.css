@@ -46,7 +46,16 @@
   --track: #e6e1d6;
   --thumb: linear-gradient(180deg, #fff, #f2f0ea);
   --focus: #405984;
-  touch-action: pan-x pan-y;
+  /* One type scale for the whole app. The landing hero keeps its own fluid clamp. */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 19px;
+  --text-xl: 24px;
+  --text-2xl: 30px;
+  --text-3xl: 38px;
+  /* Pinch zoom stays available; only the double-tap zoom delay goes. */
+  touch-action: manipulation;
 }
 
 @media only screen and (min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi) {
@@ -94,7 +103,7 @@ textarea {
 input,
 select,
 textarea {
-  font-size: 16px;
+  font-size: var(--text-md);
 }
 
 button,
@@ -162,7 +171,7 @@ h2 {
 }
 
 h3 {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 600;
   letter-spacing: -0.015em;
   text-wrap: balance;
@@ -170,7 +179,7 @@ h3 {
 
 p {
   color: var(--muted);
-  font-size: 16px;
+  font-size: var(--text-md);
   line-height: 1.6;
   text-wrap: pretty;
 }
@@ -221,7 +230,7 @@ textarea,
 label,
 legend {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
@@ -308,15 +317,6 @@ hr {
     --track: #333b4b;
     --thumb: linear-gradient(180deg, #f2efe6, #d9d5cb);
   }
-}
-
-:root[data-dim='true']::after {
-  content: '';
-  position: fixed;
-  z-index: 100;
-  inset: 0;
-  pointer-events: none;
-  background: rgb(0 0 0 / 42%);
 }
 
 @media (prefers-reduced-motion: reduce) {

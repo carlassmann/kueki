@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { LevelHold, meterFraction, NoiseDetector } from '../src/noise';
 import { recentEvent } from '../src/features/room/lib/recent-event';
-import type { Alert } from '../src/protocol';
+import type { Alert, PublicDevice } from '../src/protocol';
 test('noise alerts immediately above the threshold, then waits out the cooldown', () => {
   const detector = new NoiseDetector(0.1, 20000);
   expect(detector.sample(0.05, 0)).toBe(false);
@@ -60,4 +60,38 @@ test('a sound that stops before the sustain window starts the wait over', () => 
   expect(detector.sample(0.2, 4000)).toBe(false);
   expect(detector.sample(0.2, 8999)).toBe(false);
   expect(detector.sample(0.2, 9000)).toBe(true);
+});
+
+test('a sound on one baby device outranks another device being paused', async () => {
+  const { createIntl } = await import('@ccssmnn/intl');
+  const { messagesEn } = await import('../src/intl/messages');
+  const { describeNest } = await import('../src/features/room/lib/nest-state');
+  const t = createIntl(messagesEn, 'en') as unknown as Parameters<typeof describeNest>[2];
+  const device = (name: string, patch: Partial<PublicDevice>): PublicDevice =>
+    ({
+      id: name,
+      name,
+      role: 'baby',
+      online: true,
+      monitoring: true,
+      level: 0,
+      lastNoise: 0,
+      sensitivity: 2,
+      mutedBy: [],
+      ...patch,
+    }) as PublicDevice;
+  const now = 1_000_000;
+  const nest = describeNest(
+    [device('Nursery', { monitoring: false }), device('Bedroom', { lastNoise: now - 5_000 })],
+    true,
+    t,
+    now,
+  );
+  expect(nest.hearing).toBe(true);
+  expect(nest.mascot).toBe('sound');
+  expect(nest.detail).toContain('Bedroom is picking up some noise');
+  expect(describeNest([device('Nursery', { lastNoise: now - 61_000 })], true, t, now).mascot).toBe(
+    'quiet',
+  );
+  expect(describeNest([], true, t, now).state).toBe('empty');
 });

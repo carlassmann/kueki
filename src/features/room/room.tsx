@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Outlet } from '@tanstack/react-router';
-import { toast } from 'sonner';
+import { Outlet, useLocation } from '@tanstack/react-router';
 import { RoomConnection, request, type ConnectionStatus } from '../../connection';
 import { AudioCalls, type AudioStatus } from './lib/audio-calls';
 import { BabyAudio } from './lib/baby-audio';
@@ -22,15 +21,17 @@ import {
   EventNotice,
 } from './parts/room-notices';
 import { DeviceSettingsModal, InvitationModal, LeaveRoomConfirmation } from './parts/room-modals';
-import { RoomProvider } from './room-context';
+import { NightView } from './parts/night-view';
+import { RoomProvider, type RoomModel } from './room-context';
 import { SENSITIVITY_THRESHOLDS } from '../../noise';
 import { recentEvent } from './lib/recent-event';
+import { RECENT_SOUND_MS } from './lib/nest-state';
 import { useIntl } from '../../intl/setup';
 import './room.css';
 import { Notice } from '../../components/ui/notice';
+import { Button } from '../../components/ui/button';
 
 const AUDIO_ACTIVE_STATUSES: AudioStatus[] = ['connecting', 'live', 'paused'];
-const RECENT_EVENT_MS = 60_000;
 export function Room({
   session,
   save,
@@ -47,10 +48,12 @@ export function Room({
   updateSession: (session: Session) => void;
 }) {
   const t = useIntl();
+  const onMonitor = !/^\/app\/(activity|settings)/.test(useLocation().pathname);
   const [devices, setDevices] = useState<PublicDevice[]>([]);
   const [events, setEvents] = useState<Alert[]>([]);
   const [settings, setSettings] = useState<RoomSettings>(DEFAULT_ROOM_SETTINGS);
   const [connection, setConnection] = useState<ConnectionStatus>('Connecting');
+  const [stateFresh, setStateFresh] = useState(false);
   const [active, setActive] = useState(false);
   const [level, setLevel] = useState(0);
   const [awake, setAwake] = useState(false);
@@ -106,26 +109,15 @@ export function Room({
   const audioStatusesRef = useRef(audioStatuses);
   audioStatusesRef.current = audioStatuses;
   useEffect(() => {
-    if (!wakeWaiting) {
-      toast.dismiss('kueki-wake');
-      return;
-    }
-    toast(t('room.screenWakeTap'), {
-      id: 'kueki-wake',
-      duration: Infinity,
-      action: { label: t('room.screenWakeAction'), onClick: () => wake.activate() },
-    });
-    return () => {
-      toast.dismiss('kueki-wake');
-    };
-  }, [wakeWaiting, t, wake.activate]);
-  useEffect(() => {
     document.documentElement.dataset.dim = String(dim);
     localStorage.setItem('kueki-dim', String(dim));
     return () => {
       delete document.documentElement.dataset.dim;
     };
   }, [dim]);
+  // Night mode belongs to this room's watch: switching or leaving must not open the next room to
+  // a black screen. A reload keeps it, because unmount cleanup never runs then.
+  useEffect(() => () => localStorage.setItem('kueki-dim', 'false'), []);
   async function changeRoomSettings(next: Partial<RoomSettings>) {
     try {
       await request('room-settings', { ...session, settings: { ...settings, ...next } });
@@ -153,11 +145,7 @@ export function Room({
     }
   }
   async function clearEvents() {
-    try {
-      await request('clear-events', session);
-    } catch (error) {
-      setError(errorMessage(error));
-    }
+    await request('clear-events', session);
   }
 
   useEffect(() => {
@@ -181,10 +169,16 @@ export function Room({
       () => baby.stream,
       audioRef.current!,
       (status, target) => {
-        if (target && (status === 'stopped' || status === '')) {
+        if (target && status === 'stopped') {
           wantedAudioRef.current.delete(target);
         }
-        setAudioStatuses((current) => (target ? { ...current, [target]: status } : {}));
+        setAudioStatuses((current) => {
+          if (!target) return {};
+          // A replacement call that also fails needs a user retry, not an endless loop.
+          const next =
+            status === 'disconnected' && current[target] === 'connecting' ? 'failed' : status;
+          return { ...current, [target]: next };
+        });
       },
       session,
     ));
@@ -194,8 +188,14 @@ export function Room({
       session,
       (data) => {
         if (data.type === 'state') {
+          setStateFresh(true);
           const ids = data.devices.map((device) => device.id);
-          for (const id of knownDevices) if (!ids.includes(id)) calls.stop(id);
+          for (const id of knownDevices) {
+            if (!ids.includes(id)) {
+              wantedAudioRef.current.delete(id);
+              calls.stop(id);
+            }
+          }
           knownDevices = ids;
           if (data.roomKey) setInvitation(data.roomKey);
 
@@ -220,18 +220,33 @@ export function Room({
           signals = signals
             .then(() => calls.receive(data.source, data.payload))
             .catch((error) => {
-              calls.stop(data.source);
+              // 'interrupted' tells the other side this was a failure, not a choice to stop, so a
+              // parent shows it and offers a retry instead of quietly dropping the baby.
+              calls.stop(data.source, 'interrupted');
+              // A failed call waits for the user to retry. Left at '' the retry effect would
+              // re-offer immediately, and the same signal would fail again in a tight loop.
+              if (!isBaby) setAudioStatuses((current) => ({ ...current, [data.source]: 'failed' }));
               setError(errorMessage(error));
             });
       },
       (status) => {
         setConnection(status);
-        if (status !== 'Connected') calls.stop();
+        if (status !== 'Connected') {
+          setStateFresh(false);
+          calls.stop(undefined, 'interrupted');
+          setAudioStatuses(
+            Object.fromEntries(
+              [...wantedAudioRef.current].map((id) => [id, 'disconnected' as const]),
+            ),
+          );
+        }
         if (
           status === 'Open in another tab' ||
           status === 'Access removed' ||
           status === 'Room inactive'
         ) {
+          wantedAudioRef.current.clear();
+          setAudioStatuses({});
           baby.stop();
           stateRef.current.monitoring = false;
           setActive(false);
@@ -248,6 +263,7 @@ export function Room({
     };
     window.addEventListener('pagehide', pageHide);
     return () => {
+      wantedAudioRef.current.clear();
       pageHide();
       calls.stop();
       room.close();
@@ -361,10 +377,9 @@ export function Room({
   }
 
   function listenTo(deviceId: string) {
+    setError('');
     wantedAudioRef.current.add(deviceId);
     void callsRef.current?.listen(deviceId).catch((error) => {
-      callsRef.current?.stop(deviceId);
-      wantedAudioRef.current.delete(deviceId);
       setError(errorMessage(error));
     });
   }
@@ -375,24 +390,23 @@ export function Room({
   }
 
   function resumeAudio(deviceId: string) {
+    setError('');
     void callsRef.current?.resume(deviceId).catch((error) => setError(errorMessage(error)));
   }
   useEffect(() => {
-    if (isBaby || !connected) return;
+    // The device list from before an outage may be stale: wait for the first state after
+    // reconnecting, or a baby that paused meanwhile gets an offer it has to refuse.
+    if (isBaby || !connected || !stateFresh) return;
     for (const deviceId of wantedAudioRef.current) {
       const device = devices.find((candidate) => candidate.id === deviceId);
       if (!device || !device.online || !device.monitoring) continue;
       const status = audioStatuses[deviceId];
-      if (status === 'connecting' || status === 'live') continue;
-      if (status === 'paused') {
-        void callsRef.current?.resume(deviceId).catch(() => {
-          void callsRef.current?.listen(deviceId).catch((error) => setError(errorMessage(error)));
-        });
-        continue;
-      }
-      void callsRef.current?.listen(deviceId).catch((error) => setError(errorMessage(error)));
+      if (status !== 'disconnected' && status !== '') continue;
+      void callsRef.current?.listen(deviceId).catch((error) => {
+        setError(errorMessage(error));
+      });
     }
-  }, [connected, devices, audioStatuses, isBaby]);
+  }, [connected, stateFresh, devices, audioStatuses, isBaby]);
   useEffect(() => {
     if (isBaby) return;
     const recover = () => {
@@ -415,104 +429,133 @@ export function Room({
   const mutedBabies = babies
     .filter((device) => device.mutedBy.includes(session.deviceId))
     .map((device) => device.id);
-  const latestEvent = recentEvent(
-    events.filter((event) => !mutedBabies.includes(event.deviceId)),
-    dismissedEventsThrough,
-    Date.now(),
-    RECENT_EVENT_MS,
-  );
+  // Baby devices never show event notices, so they skip the scan on every level update.
+  const latestEvent = isBaby
+    ? undefined
+    : recentEvent(
+        events.filter((event) => {
+          if (mutedBabies.includes(event.deviceId)) return false;
+          if (event.kind === 'noise') return true;
+          const device = babies.find((candidate) => candidate.id === event.deviceId);
+          if (!device) return false;
+          return event.kind === 'offline' ? !device.online : device.online && !device.monitoring;
+        }),
+        dismissedEventsThrough,
+        Date.now(),
+        RECENT_SOUND_MS,
+      );
   const parents = devices.filter((device) => device.role === 'parent' && device.online);
+  // A lost connection or an error needs the parent's full screen, so the night view steps aside.
+  // It stays through the brief 'Connecting' of a reload or reconnect, which would otherwise flash
+  // the room. A baby device keeps listening on its own, and lighting up the nursery helps no one.
+  const nightView = dim && !error && (isBaby || connected || connection === 'Connecting');
+  const roomModel: RoomModel = {
+    accessNotice,
+    active,
+    audioStatuses,
+    awake,
+    babies,
+    busy,
+    connected,
+    devices,
+    events,
+    isBaby,
+    installRequired: pwa.notificationsNeedInstall,
+    level,
+    mutedBabies,
+    parents,
+    preferences,
+    pushEnabled: push,
+    pushTestMessage: pushTest,
+    sensitivity,
+    session,
+    settings,
+    changeRoomSettings,
+    changeSensitivity,
+    clearEvents,
+    enableNotifications: notify,
+    openInstallGuide: pwa.openInstallGuide,
+    listenTo,
+    openInvitation: () => setModal('invite'),
+    openSettings: () => setModal('settings'),
+    removeDevice: (deviceId) => void manageAccess(deviceId).then(setError),
+    resumeAudio,
+    stopListening: stopListeningTo,
+    testNotification,
+    toggleDim: () => setDim(!dim),
+    toggleMute,
+    toggleMonitoring,
+  };
+  function notice() {
+    // One notice at a time, most urgent first: stacked banners pushed the room itself off a phone
+    // screen. On Monitor the nest summary already tells the same story as an event would.
+    if (!connected)
+      return (
+        <ConnectionNotice
+          connection={connection}
+          onLeave={connection === 'Access removed' ? () => setModal('leave-removed') : undefined}
+        />
+      );
+    if (error) return <ErrorNotice error={error} onDismiss={() => setError('')} />;
+    if (!onMonitor)
+      return (
+        !isBaby &&
+        latestEvent && (
+          <EventNotice
+            event={latestEvent}
+            onDismiss={() => setDismissedEventsThrough(latestEvent.at)}
+          />
+        )
+      );
+    if (wakeWaiting)
+      return (
+        <Notice as="div" data-testid="wake-lock-notice" data-state="tap">
+          <span>{t('room.screenWakeTap')}</span>
+          <Button variant="secondary" size="small" onClick={() => wake.activate()}>
+            {t('room.screenWakeAction')}
+          </Button>
+        </Notice>
+      );
+    if (!parentAwake && !isBaby)
+      return (
+        <Notice data-testid="wake-lock-notice" data-state="unavailable">
+          {t('room.screenWakeUnavailable')}
+        </Notice>
+      );
+    return null;
+  }
   return (
     <main className="room">
       <div ref={audioRef} hidden />
-      <RoomHeader
-        roomName={session.roomName}
-        roomSwitcher={roomSwitcher}
-        onInvite={() => setModal('invite')}
-        indicator={
-          <ConnectionIndicator
-            connected={connected}
-            connection={connection}
-            parentAwake={parentAwake}
-          />
-        }
-      />
-      <div className="room-scroll">
-        <div className="room-content">
-          <div className="room-alerts">
-            {wakeWaiting && (
-              <Notice data-testid="wake-lock-notice" data-state="tap">
-                {t('room.screenWakeTap')}
-              </Notice>
-            )}
-            {!isBaby && connected && !parentAwake && !wakeWaiting && (
-              <Notice data-testid="wake-lock-notice" data-state="unavailable">
-                {t('room.screenWakeUnavailable')}
-              </Notice>
-            )}
-            {!connected && (
-              <ConnectionNotice
+      <RoomProvider value={roomModel}>
+        {/* Behind the night view the room is hidden, so it must not take focus or speak either. */}
+        <div className="room-body" inert={nightView}>
+          <RoomHeader
+            roomName={session.roomName}
+            roomSwitcher={roomSwitcher}
+            onInvite={() => setModal('invite')}
+            dimmed={dim}
+            onToggleDim={roomModel.toggleDim}
+            indicator={
+              <ConnectionIndicator
+                connected={connected}
                 connection={connection}
-                onLeave={
-                  connection === 'Access removed' ? () => setModal('leave-removed') : undefined
-                }
+                parentAwake={parentAwake}
               />
-            )}
-            {error && <ErrorNotice error={error} onDismiss={() => setError('')} />}
-            {!isBaby && connected && latestEvent && (
-              <EventNotice
-                event={latestEvent}
-                onDismiss={() => setDismissedEventsThrough(latestEvent.at)}
-              />
-            )}
-          </div>
-          <RoomProvider
-            value={{
-              accessNotice,
-              active,
-              audioStatuses,
-              awake,
-              babies,
-              busy,
-              connected,
-              devices,
-              dimmed: dim,
-              events,
-              isBaby,
-              installRequired: pwa.notificationsNeedInstall,
-              level,
-              mutedBabies,
-              parents,
-              preferences,
-              pushEnabled: push,
-              pushTestMessage: pushTest,
-              sensitivity,
-              session,
-              settings,
-              changeRoomSettings,
-              changeSensitivity,
-              clearEvents,
-              enableNotifications: notify,
-              openInstallGuide: pwa.openInstallGuide,
-              listenTo,
-              openInvitation: () => setModal('invite'),
-              openSettings: () => setModal('settings'),
-              removeDevice: (deviceId) => void manageAccess(deviceId).then(setError),
-              resumeAudio,
-              stopListening: stopListeningTo,
-              testNotification,
-              toggleDim: () => setDim(!dim),
-              toggleMute,
-              toggleMonitoring,
-            }}
-          >
-            <div className="room-grid">
-              <Outlet />
+            }
+          />
+          <div className="room-alerts">{notice()}</div>
+          <div className="room-scroll">
+            <div className="room-content">
+              <div className="room-grid">
+                <Outlet />
+              </div>
+              {pwa.error && <Notice>{pwa.error}</Notice>}
             </div>
-          </RoomProvider>
-          {pwa.error && <Notice>{pwa.error}</Notice>}
+          </div>
         </div>
-      </div>
+        {nightView && <NightView screenAwake={isBaby ? !active || awake : wake.awake} />}
+      </RoomProvider>
       {modal === 'invite' && (
         <InvitationModal
           accessNotice={accessNotice}
@@ -521,6 +564,7 @@ export function Room({
           copied={copied}
           invitation={invitation}
           isBaby={isBaby}
+          roomName={session.roomName}
           onClose={() => setModal('')}
           onCopy={copy}
           onReset={() => manageAccess()}

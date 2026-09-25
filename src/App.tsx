@@ -11,6 +11,7 @@ import { readSession, readRooms, sessionsEqual, storeActive, storeRooms } from '
 import { ForgetRoomConfirmation, InvitationModal, PrivacyModal, RoomsPopover } from './AppModals';
 import { PrivacyIcon } from './icons';
 import { useIntl } from './intl/setup';
+import { parseInvitation } from './invitation-link';
 import { LanguageSelect } from './LanguageSelect';
 import { Button } from './components/ui/button';
 import { ToastArea } from './toast-area';
@@ -24,6 +25,9 @@ export function App() {
     const viewport = window.visualViewport;
     if (!viewport) return;
     const updateViewport = () => {
+      // Pinch zoom also shrinks the visual viewport. Following it would squash the app into the
+      // zoomed area instead of magnifying it, so only the keyboard (at scale 1) resizes the shell.
+      if (viewport.scale > 1.01) return;
       document.documentElement.style.setProperty(
         '--visual-viewport-top',
         `${viewport.offsetTop}px`,
@@ -51,7 +55,7 @@ export function App() {
   const [switchError, setSwitchError] = useState('');
   const route = useLocation();
   const navigate = useNavigate();
-  const incoming = new URLSearchParams(route.hash.replace(/^#/, '')).get('join') || '';
+  const incoming = parseInvitation(route.hash).code;
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState('');
   useEffect(() => setJoinError(''), [incoming]);
@@ -114,7 +118,7 @@ export function App() {
         (room) => incoming === room.roomKey || incoming.startsWith(room.roomId + '.'),
       );
       if (existing) await activate(existing);
-      else await addRoom('/app/join', 'join=' + encodeURIComponent(incoming));
+      else await addRoom('/app/join', route.hash.replace(/^#/, ''));
     } catch (error) {
       setJoinError(error instanceof Error ? error.message : t('app.switchFailed'));
     } finally {
@@ -136,7 +140,12 @@ export function App() {
 
   const pwa = usePwa();
   const appMode = route.pathname.startsWith('/app') || !!incoming;
-  useInstallNudge(pwa, Boolean(session));
+  // A toast over a half-filled setup form covers its submit button, so the nudge only shows
+  // where there is nothing to fill in.
+  const setup = new URLSearchParams(route.searchStr).get('setup');
+  const inSetupForm =
+    /^\/app\/(create|join)/.test(route.pathname) || Boolean(setup) || Boolean(incoming);
+  useInstallNudge(pwa, Boolean(session) || inSetupForm);
   function saveSession(value: Session | null) {
     setRooms((current) =>
       storeRooms(

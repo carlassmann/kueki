@@ -1,5 +1,5 @@
 .meter-wrap {
-  margin: 30px 0 20px;
+  margin: 18px 0 16px;
 }
 
 .meter-wrap > div:first-child {
@@ -8,15 +8,19 @@
   gap: 16px;
   margin-bottom: 9px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .meter {
+  --meter-gap: 5px;
+  width: min(100%, calc(324px + 35 * var(--meter-gap)));
+  margin-inline: auto;
+  position: relative;
   height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: var(--meter-gap);
   overflow: hidden;
 }
 
@@ -66,6 +70,17 @@
 
 @media (max-width: 680px) {
   .meter {
-    gap: 4px;
+    --meter-gap: 4px;
   }
+}
+
+.meter-threshold {
+  position: absolute;
+  left: var(--meter-threshold);
+  top: 2px;
+  bottom: 2px;
+  width: 2px;
+  background: color-mix(in srgb, var(--primary) 70%, transparent);
+  border-radius: 2px;
+  pointer-events: none;
 }

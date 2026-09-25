@@ -1,39 +1,13 @@
-.monitor-topline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.monitor-device {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.dim-control {
-  flex: none;
-  white-space: nowrap;
-}
-
-.device-list > .dim-control {
-  margin: 4px auto 0;
-}
-
-.empty-nest .dim-control {
-  margin: 20px auto 0;
-}
-
 .monitor-panel {
   padding: 10px 0 24px;
 }
 
-.monitor-panel:has(.monitor-hero) {
-  padding: 26px 22px 28px;
+/* Both roles share one pattern: the state of the room sits on the canvas, the things you adjust
+   sit in cards. */
+.monitor-card,
+.device-card {
+  min-width: 0;
+  padding: 22px;
   border-radius: var(--radius-xl);
   background: linear-gradient(180deg, var(--surface-raised), var(--surface));
   box-shadow:
@@ -45,21 +19,18 @@
   text-align: center;
 }
 
-.monitor-hero [data-ui='status'] {
-  margin-top: 10px;
-  padding: 6px 13px 6px 11px;
-  border-radius: 999px;
-  background: color-mix(in srgb, currentColor 10%, transparent);
-  font-weight: 500;
+.monitor-hero .monitor-mascot {
+  width: 230px;
+  height: 190px;
 }
 
 .monitor-hero h2 {
-  margin-top: 14px;
-  font-size: 38px;
+  margin-top: 10px;
+  font-size: var(--text-2xl);
 }
 
 .monitor-hero p {
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .baby-checks {
@@ -67,9 +38,9 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px 20px;
-  margin: 20px 0;
+  margin: 16px 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .baby-checks > span {
@@ -78,17 +49,36 @@
   gap: 7px;
 }
 
-.sensitivity {
+.baby-checks > span[data-on='true'] {
+  color: var(--mint);
+}
+
+.monitor-card {
   margin-top: 18px;
-  padding-top: 20px;
+}
+
+.monitor-card .sensitivity {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.meter-wrap [data-sound='true'] {
+  color: var(--mint);
+  font-weight: 600;
+}
+
+.sensitivity {
+  margin-top: 16px;
+  padding-top: 16px;
   border-top: var(--hairline) solid var(--line);
 }
 
 .sensitivity label {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
 .sensitivity label span {
@@ -101,22 +91,22 @@
 }
 
 .empty-nest {
-  padding: 12px 0 32px;
+  padding: 12px 0 24px;
   text-align: center;
 }
 
 .empty-nest .empty-nest-mascot {
   width: min(100%, 340px);
   height: 270px;
-  margin: 0 auto -8px;
+  margin: 0 auto;
 }
 
 .empty-nest h2 {
-  font-size: 38px;
+  font-size: var(--text-2xl);
 }
 
 .empty-nest p {
-  margin: 14px auto 26px;
+  margin: 14px auto 22px;
   max-width: 43ch;
 }
 
@@ -127,92 +117,106 @@
 }
 
 .nest-summary {
-  padding: 6px 0 10px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 2px 0;
+}
+
+.nest-summary > div {
+  min-width: 0;
 }
 
 .nest-summary h2 {
-  margin-top: 12px;
-  font-size: 32px;
+  font-size: var(--text-xl);
 }
 
 .nest-summary p {
-  margin-top: 8px;
+  margin-top: 4px;
   color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .nest-summary .monitor-mascot {
-  width: 200px;
-  height: 165px;
+  flex: none;
+  width: 96px;
+  height: 80px;
+  margin: 0;
 }
 
-.device-card {
-  min-width: 0;
-  padding: 22px;
-  border-radius: var(--radius-xl);
-  background: linear-gradient(180deg, var(--surface-raised), var(--surface));
-  box-shadow:
-    0 0 0 var(--hairline) var(--line),
-    var(--shadow-2);
+.device-grid {
+  display: grid;
+  gap: 14px;
 }
 
-.device-card {
-  transition: box-shadow 260ms var(--spring);
+/* Wide screens have room for two nurseries side by side. */
+@media (min-width: 861px) {
+  .device-grid:not([data-count='1']) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.monitor-readiness {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: var(--hairline) solid var(--line);
 }
 
 .device-heading {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+}
+
+.device-heading > div:last-child {
+  min-width: 0;
 }
 
 .device-icon {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius);
   color: #8c6d1f;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--butter-soft) 70%, white),
-    var(--butter-soft)
-  );
-  box-shadow: 0 0 0 var(--hairline) rgb(148 117 38 / 12%) inset;
+  background: var(--butter-soft);
 }
 
-.device-icon {
-  width: 48px;
-  height: 48px;
-}
-
-/* A device name is free text, so a long unbroken one must not push the card sideways. */
 .device-heading h3 {
   overflow-wrap: anywhere;
   margin-bottom: 5px;
 }
 
-.device-card .meter {
-  margin: 18px 0 12px;
-}
-
-.device-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-/* German labels wrap to two lines, so the buttons share the tallest height and
-   the row's width instead of floating at different sizes. */
 .device-actions {
   display: flex;
-  align-items: stretch;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
 }
 
-.device-actions > * {
+.device-actions > [data-ui='button'] {
+  flex: 1 1 105px;
   min-width: 0;
-  flex: 1;
+  max-width: 100%;
+  padding-inline: 10px;
+}
+
+.device-actions span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.device-actions svg,
+.audio-status svg {
+  flex: none;
 }
 
 .mute-toggle[aria-pressed='true'] {
@@ -220,25 +224,70 @@
   background: var(--danger-soft);
 }
 
+.device-audio {
+  margin-top: 14px;
+}
+
 .audio-status {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 15px;
-  padding: 12px 14px;
+  margin: 4px 0 8px;
+  padding: 8px 10px;
   border-radius: var(--radius-sm);
-  color: var(--mint);
-  background: var(--mint-soft);
-  box-shadow: 0 0 0 var(--hairline) color-mix(in srgb, var(--mint) 16%, transparent) inset;
-  font-size: 14px;
+  color: var(--muted);
+  background: var(--surface-sunken);
+  font-size: var(--text-sm);
 }
 
-.audio-status button {
-  min-height: 36px;
-  padding: 0;
-  color: inherit;
-  background: none;
-  text-decoration: underline;
+.device-audio:is([data-status='paused'], [data-status='disconnected'], [data-status='failed'])
+  .audio-status {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.device-card .meter {
+  margin: 8px auto;
+}
+
+.device-sensitivity {
+  margin-top: 12px;
+  border-top: var(--hairline) solid var(--line);
+}
+
+.device-sensitivity summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.device-sensitivity summary span {
+  margin-left: auto;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.device-sensitivity summary::after {
+  content: '+';
+  color: var(--muted);
+}
+
+.device-sensitivity[open] summary::after {
+  content: '−';
+}
+
+.device-sensitivity summary::-webkit-details-marker {
+  display: none;
+}
+
+.device-sensitivity .sensitivity {
+  margin: 0;
+  padding: 6px 0 10px;
+  border: 0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -251,35 +300,16 @@
   .monitor-panel {
     padding-top: 4px;
   }
-  .monitor-hero h2,
-  .empty-nest h2 {
-    font-size: 34px;
-  }
-  .nest-summary h2 {
-    font-size: 29px;
-  }
-  .monitor-hero p,
-  .empty-nest p,
-  .nest-summary p {
-    font-size: 16px;
-  }
   .nest-summary .monitor-mascot {
-    width: 178px;
-    height: 148px;
-  }
-  .baby-checks {
-    justify-content: flex-start;
-  }
-  .device-card,
-  .monitor-panel:has(.monitor-hero) {
-    padding: 18px;
-    border-radius: 26px;
-  }
-  .device-bottom {
-    align-items: flex-start;
-    flex-direction: column;
+    width: 84px;
+    height: 70px;
   }
   .empty-nest .empty-nest-mascot {
     height: 230px;
+  }
+  .monitor-card,
+  .device-card {
+    padding: 16px;
+    border-radius: var(--radius-lg);
   }
 }

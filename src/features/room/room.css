@@ -6,35 +6,47 @@
   overflow: hidden;
 }
 
+/* Only groups the room so the night view can make all of it inert at once; layout stays flat. */
+.room-body {
+  display: contents;
+}
+
 .room-scroll {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: none;
-  padding-bottom: calc(48px + env(safe-area-inset-bottom));
+  /* The toast stack reports its height, so the last control can always scroll out from under it. */
+  padding-bottom: calc(48px + env(safe-area-inset-bottom) + var(--bottom-overlay, 0px));
+}
+
+/* Touch devices scroll with a gesture; a desktop-style scrollbar only adds a grey stripe. */
+@media (pointer: coarse) {
+  .room-scroll,
+  .app-onboarding {
+    scrollbar-width: none;
+  }
+  .room-scroll::-webkit-scrollbar,
+  .app-onboarding::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .room-content {
   position: relative;
 }
 
+/* The notice takes space above the scroll area instead of covering it. */
 .room-alerts {
-  position: fixed;
-  z-index: 4;
-  right: max(32px, calc((100vw - 1056px) / 2));
-  bottom: max(24px, env(safe-area-inset-bottom));
-  width: min(calc(100% - 64px), 440px);
-  pointer-events: none;
+  flex: none;
+  width: min(calc(100% - 32px), 760px);
+  max-height: 30vh;
+  margin-inline: auto;
+  overflow-y: auto;
 }
 
 .room-alerts [data-ui='notice'] {
-  margin: 8px 0 0;
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  box-shadow:
-    0 0 0 1px var(--line),
-    0 12px 32px rgb(44 52 72 / 12%);
-  backdrop-filter: blur(12px);
-  pointer-events: auto;
+  margin: 8px 0;
 }
 
 .room-grid {
@@ -46,27 +58,11 @@
   margin-top: 14px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .room-alerts [data-ui='notice'] {
-    box-shadow:
-      0 0 0 var(--hairline) var(--line),
-      var(--shadow-3);
-  }
-}
-
 @media (max-width: 860px) {
   .room-scroll {
-    padding-bottom: calc(104px + env(safe-area-inset-bottom));
-    scroll-padding-bottom: calc(104px + env(safe-area-inset-bottom));
-  }
-  .room-scroll:has(.room-alerts [data-ui='notice']) {
-    padding-bottom: calc(240px + env(safe-area-inset-bottom));
-    scroll-padding-bottom: calc(240px + env(safe-area-inset-bottom));
-  }
-  .room-alerts {
-    right: 16px;
-    bottom: calc(92px + env(safe-area-inset-bottom));
-    width: calc(100% - 32px);
+    margin-bottom: calc(90px + env(safe-area-inset-bottom));
+    padding-bottom: calc(16px + var(--bottom-overlay, 0px));
+    scroll-padding-bottom: 16px;
   }
 }
 
@@ -74,4 +70,9 @@
   .room-grid {
     margin-top: 8px;
   }
+}
+
+/* This notice carries a button, which reads best level with the message. */
+.room-alerts [data-testid='wake-lock-notice'][data-state='tap'] {
+  align-items: center;
 }

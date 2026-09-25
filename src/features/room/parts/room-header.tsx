@@ -1,6 +1,13 @@
 import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
-import { AddIcon, ParentIcon, SettingsIcon, SoundIcon } from '../../../icons';
+import {
+  AddIcon,
+  BrightIcon,
+  NightIcon,
+  ParentIcon,
+  SettingsIcon,
+  SoundIcon,
+} from '../../../icons';
 import { useIntl } from '../../../intl/setup';
 import { Button } from '../../../components/ui/button';
 import './room-header.css';
@@ -15,11 +22,15 @@ export function RoomHeader({
   roomName,
   roomSwitcher,
   onInvite,
+  dimmed,
+  onToggleDim,
   indicator,
 }: {
   roomName: string;
   roomSwitcher: ReactNode;
   onInvite: () => void;
+  dimmed: boolean;
+  onToggleDim: () => void;
   indicator: ReactNode;
 }) {
   const t = useIntl();
@@ -43,6 +54,18 @@ export function RoomHeader({
       </nav>
       <div className="room-tools">
         {indicator}
+        <Button
+          variant="icon"
+          className="room-tool"
+          data-testid="dim-toggle"
+          data-on={dimmed}
+          aria-pressed={dimmed}
+          aria-label={dimmed ? t('monitor.restoreBrightness') : t('monitor.dim')}
+          title={dimmed ? t('monitor.restoreBrightness') : t('monitor.dim')}
+          onClick={onToggleDim}
+        >
+          {dimmed ? <BrightIcon size={19} /> : <NightIcon size={19} />}
+        </Button>
         <Button
           variant="secondary"
           size="small"

@@ -32,7 +32,7 @@
   color: inherit;
   background: transparent;
   box-shadow: none;
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 400;
 }
 
@@ -45,5 +45,12 @@
   [data-ui='select'][data-variant='quiet']:hover select,
   [data-ui='select'][data-variant='quiet']:hover svg {
     color: var(--ink);
+  }
+}
+
+/* iOS zooms the page into any focused control under 16px, and zoom is no longer blocked. */
+@media (pointer: coarse) {
+  [data-ui='select'][data-variant='quiet'] select {
+    font-size: var(--text-md);
   }
 }

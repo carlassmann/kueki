@@ -1,12 +1,12 @@
 [data-testid='install-guide'] h2 {
   max-width: 20ch;
-  font-size: 27px;
+  font-size: var(--text-xl);
 }
 
 .install-intro {
   margin-bottom: 12px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .install-steps {
@@ -22,7 +22,7 @@
   padding: 12px 14px;
   border-radius: var(--radius);
   background: var(--surface-sunken);
-  font-size: 15px;
+  font-size: var(--text-md);
   line-height: 1.45;
 }
 
@@ -48,7 +48,7 @@
   border-radius: var(--radius-sm);
   color: var(--mint);
   background: var(--mint-soft);
-  font-size: 13px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -69,12 +69,12 @@
 }
 
 .install-nudge strong {
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .install-nudge span {
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.45;
 }
 

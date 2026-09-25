@@ -1,7 +1,8 @@
 [data-ui='notice'] {
   min-height: 48px;
   display: flex;
-  align-items: center;
+  /* Icons and the close button sit on the first line, not the middle of a wrapped message. */
+  align-items: flex-start;
   gap: 11px;
   margin: 14px 0;
   padding: 13px 16px;
@@ -9,7 +10,7 @@
   color: var(--danger);
   background: var(--danger-soft);
   box-shadow: 0 0 0 var(--hairline) color-mix(in srgb, currentColor 14%, transparent) inset;
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
@@ -21,4 +22,14 @@
 [data-ui='notice'][data-tone='sound'] {
   color: var(--mint);
   background: var(--mint-soft);
+}
+
+/* A 20px glyph on a 21px line box. */
+[data-ui='notice'] > svg {
+  margin-top: 1px;
+}
+
+/* The close button keeps its 44px hit area but lines its glyph up with the first line. */
+[data-ui='notice'] > [data-variant='icon'] {
+  margin: -11px -10px -11px auto;
 }

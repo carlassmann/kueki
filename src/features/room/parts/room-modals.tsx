@@ -9,6 +9,7 @@ import {
 } from '../../../icons';
 import { request } from '../../../connection';
 import { InvitationQr } from '../../../InvitationQr';
+import { invitationLink } from '../../../invitation-link';
 import { Dialog } from '../../../components/ui/dialog';
 import type { PublicDevice, Session } from '../../../protocol';
 import { useIntl } from '../../../intl/setup';
@@ -45,6 +46,7 @@ export function InvitationModal({
   copied,
   invitation,
   isBaby,
+  roomName,
   onClose,
   onCopy,
   onReset,
@@ -55,6 +57,7 @@ export function InvitationModal({
   copied: string;
   invitation: string;
   isBaby: boolean;
+  roomName: string;
   onClose: () => void;
   onCopy: (value: string, label: string) => Promise<string>;
   onReset: DialogAction;
@@ -79,7 +82,7 @@ export function InvitationModal({
   return (
     <Dialog title={t('roomInvite.title')} testId="invite-dialog" close={onClose}>
       <p>{t('roomInvite.body')}</p>
-      <InvitationQr key={invitation} code={invitation} />
+      <InvitationQr key={invitation} code={invitation} roomName={roomName} />
       <label>
         {t('roomInvite.codeLabel')}
         <input
@@ -96,9 +99,7 @@ export function InvitationModal({
           variant="primary"
           full
           data-testid="copy-invite-link"
-          onClick={() =>
-            run(() => onCopy(`${location.origin}/app/join#join=${invitation}`, 'link'))
-          }
+          onClick={() => run(() => onCopy(invitationLink(invitation, roomName), 'link'))}
         >
           {copied === 'link' ? <CheckIcon size={18} weight="bold" /> : <InviteLinkIcon size={18} />}{' '}
           {copied === 'link' ? t('roomInvite.linkCopied') : t('roomInvite.copyLink')}
@@ -116,8 +117,8 @@ export function InvitationModal({
       <DialogError error={error} />
       {!isBaby && (
         <Button
-          variant="secondary"
-          full
+          variant="quiet"
+          tone="danger"
           className="reset-invitation"
           data-testid="reset-invitation"
           disabled={busy || !connected}

@@ -45,9 +45,9 @@ test('plural and push messages localize', () => {
     key: string,
     params: Record<string, unknown>,
   ) => string;
-  expect(en('monitor.parentsOnline', { count: 1 })).toBe('one parent device online');
+  expect(en('monitor.parentsOnline', { count: 1 })).toBe('One parent device online');
   expect(en('monitor.parentsOnline', { count: 2 })).toBe('2 parent devices online');
-  expect(de('monitor.parentsOnline', { count: 1 })).toBe('ein Elterngerät online');
+  expect(de('monitor.parentsOnline', { count: 1 })).toBe('Ein Elterngerät online');
   expect(pushBody('de', 'Nursery')).toBe('Nursery hat ein Geräusch erkannt.');
   expect(pushBody('en', 'Nursery')).toBe('Nursery detected noise.');
 });

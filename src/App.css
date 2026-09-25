@@ -23,7 +23,7 @@
   align-items: center;
   gap: 8px;
   font-family: Fredoka, sans-serif;
-  font-size: 38px;
+  font-size: var(--text-3xl);
   font-weight: 500;
   letter-spacing: -0.06em;
 }
@@ -68,13 +68,13 @@ footer a {
   padding: 0;
   color: inherit;
   background: transparent;
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .project-links {
   padding-top: 4px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .project-links a,
@@ -119,7 +119,7 @@ footer a {
 }
 
 .application .brand {
-  font-size: 30px;
+  font-size: var(--text-2xl);
 }
 
 .application .brand img {
@@ -134,7 +134,7 @@ footer a {
   align-items: safe center;
   justify-content: center;
   overflow-y: auto;
-  padding: 40px 0 calc(40px + env(safe-area-inset-bottom));
+  padding: 40px 0 calc(40px + env(safe-area-inset-bottom) + var(--bottom-overlay, 0px));
 }
 
 .app-onboarding .welcome-content {
@@ -142,7 +142,7 @@ footer a {
 }
 
 .app-onboarding .welcome-content h2 {
-  font-size: 38px;
+  font-size: var(--text-3xl);
 }
 
 .app-onboarding .welcome-actions,
@@ -168,7 +168,7 @@ footer a {
 }
 
 .not-found h1 {
-  font-size: 38px;
+  font-size: var(--text-3xl);
 }
 
 .not-found p {
@@ -187,11 +187,11 @@ footer a {
   gap: 8px;
   padding: 12px;
   border-color: var(--line);
-  border-radius: 18px;
+  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 [data-sonner-toaster] [data-sonner-toast] [data-content] {
@@ -205,7 +205,7 @@ footer a {
   [data-close-button] {
   min-height: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font: inherit;
 }
 
@@ -216,17 +216,26 @@ footer a {
   font-weight: 600;
 }
 
+/* The close button floats in the corner so the message and its actions keep the toast's full
+   width; as a flex column it squeezed the text into a narrow block. */
 [data-sonner-toaster][data-sonner-theme]
   [data-sonner-toast][data-styled='true']
   [data-close-button] {
-  position: static;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  left: auto;
   width: 44px;
-  flex: 0 0 44px;
-  order: 3;
   transform: none;
   border: 0;
   color: var(--muted);
   background: transparent;
+}
+
+/* Only the first line runs under the close button, so only it keeps clear of the corner. */
+[data-sonner-toaster] [data-sonner-toast] [data-title],
+[data-sonner-toaster] [data-sonner-toast] .install-nudge > strong {
+  padding-right: 36px;
 }
 
 @media (max-width: 860px) {
@@ -247,6 +256,7 @@ footer a {
   .topbar {
     min-height: 72px;
   }
+  /* The wordmark is a logo, not text, so it keeps its own size outside the type scale. */
   .brand {
     font-size: 34px;
   }
@@ -262,13 +272,13 @@ footer a {
   }
   .app-onboarding {
     justify-content: flex-start;
-    padding: 28px 0;
+    padding: 28px 0 calc(28px + var(--bottom-overlay, 0px));
   }
   .app-onboarding .welcome-content h2 {
-    font-size: 36px;
+    font-size: var(--text-3xl);
   }
   .not-found h1 {
-    font-size: 34px;
+    font-size: var(--text-3xl);
   }
   .not-found .not-found-mascot {
     height: 190px;

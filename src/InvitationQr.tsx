@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import QRCode from 'qrcode';
 import { useIntl } from './intl/setup';
+import { invitationLink } from './invitation-link';
 import './InvitationQr.css';
 
 /* Scanners need a light quiet zone and dark modules, so the dark theme dims the
@@ -17,7 +18,7 @@ function subscribeToColorScheme(onChange: () => void) {
   return () => darkQuery.removeEventListener('change', onChange);
 }
 
-export function InvitationQr({ code }: { code: string }) {
+export function InvitationQr({ code, roomName }: { code: string; roomName: string }) {
   const t = useIntl();
   const [image, setImage] = useState('');
   const [error, setError] = useState('');
@@ -29,7 +30,7 @@ export function InvitationQr({ code }: { code: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    QRCode.toDataURL(code, {
+    QRCode.toDataURL(invitationLink(code, roomName), {
       width: 512,
       margin: 4,
       errorCorrectionLevel: 'M',
@@ -44,7 +45,7 @@ export function InvitationQr({ code }: { code: string }) {
     return () => {
       cancelled = true;
     };
-  }, [code, prefersDark, t]);
+  }, [code, roomName, prefersDark, t]);
 
   return (
     <div className="invitation-qr">

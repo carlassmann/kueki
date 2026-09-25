@@ -8,6 +8,6 @@
   width: 224px;
   max-width: 100%;
   height: auto;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   box-shadow: 0 0 0 var(--hairline) var(--line);
 }

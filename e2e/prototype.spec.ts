@@ -100,6 +100,7 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
   ] as const) {
     await page.goto(`/#join=${session.roomKey}`);
     await page.getByTestId('device-name').fill(name);
+    await page.getByTestId('role-parent').click();
     await page.getByTestId('submit-room').click();
     await expect(page.getByTestId('connection-status')).toHaveAttribute('data-status', 'connected');
   }
@@ -118,9 +119,11 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
   await expect
     .poll(() => parent.evaluate(() => (window as any).observedWake.requests))
     .toBeGreaterThan(2);
+  await nurseryCard.locator('summary').click();
   await nurseryCard.getByTestId('device-sensitivity').fill('3');
   await expect(baby.getByTestId('baby-sensitivity')).toHaveValue('3');
   await expect(second.getByTestId('device-sensitivity')).toHaveValue('3');
+  await second.locator('[data-testid="sensitivity-details"] summary').click();
   await second.getByTestId('device-sensitivity').fill('1');
   await expect(nurseryCard.getByTestId('device-sensitivity')).toHaveValue('1');
   await baby.getByTestId('monitor-toggle').click();
@@ -192,10 +195,8 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
     timeout: 45000,
   });
   await parent.getByTestId('nav-monitor').click();
-  await expect(nurseryCard.getByTestId('listen-toggle')).toBeDisabled();
+  await expect(nurseryCard.getByTestId('device-status')).toHaveAttribute('data-state', 'offline');
   await babyContext.setOffline(false);
-  await expect(nurseryCard.getByTestId('listen-toggle')).toBeEnabled({ timeout: 15000 });
-  await nurseryCard.getByTestId('listen-toggle').click();
   await expect(nurseryCard.getByTestId('audio-status')).toHaveAttribute('data-status', 'live');
   await baby.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide')));
   expect(
@@ -207,7 +208,10 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
   ).toBe(true);
   await expect(baby.getByTestId('monitor-toggle')).toHaveAttribute('data-active', 'false');
   await expect(nurseryCard.getByTestId('listen-toggle')).toBeDisabled();
+  await expect(parent.getByTestId('nest-summary')).toHaveAttribute('data-state', 'paused');
+  await parent.getByTestId('nav-activity').click();
   await expect(parent.getByTestId('event-notice')).toHaveAttribute('data-kind', 'paused');
+  await parent.getByTestId('nav-monitor').click();
   await baby.reload();
   await expect(baby.getByTestId('room-title')).toHaveAttribute('data-room-name', session.roomName);
   await expect(baby.getByTestId('monitor-toggle')).toHaveAttribute('data-active', 'false');
@@ -236,6 +240,9 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
   await otherBaby.getByTestId('monitor-toggle').click();
   const bedroomCard = parent.locator('[data-testid="device-card"][data-device-name="Bedroom"]');
   await expect(parent.getByTestId('device-card')).toHaveCount(2);
+  await expect(parent.getByTestId('nest-summary')).toHaveAttribute('data-state', 'paused');
+  await expect(parent.getByTestId('nest-summary')).toContainText('1 of 2 devices monitoring');
+  await expect(parent.getByTestId('nest-summary')).toContainText('Nursery paused');
   await bedroomCard.getByTestId('listen-toggle').click();
   await expect(bedroomCard.getByTestId('audio-status')).toHaveAttribute('data-status', 'live');
   await baby.getByTestId('monitor-toggle').click();
@@ -334,6 +341,7 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
   await parent.getByTestId('confirm-leave-room').click();
   await parent.goto(`/#join=${session.roomKey}`);
   await parent.getByTestId('device-name').fill('Returning caregiver');
+  await parent.getByTestId('role-parent').click();
   await parent.getByTestId('submit-room').click();
   await expect(parent.getByTestId('form-error')).toBeVisible();
   await second.getByTestId('invite-device').click();
@@ -345,6 +353,7 @@ test('real baby + two parents: pairing, received audio packets, sound alert, net
   const currentInvitation = await second.getByTestId('invite-code').inputValue();
   await second.screenshot({ path: 'artifacts/reset-invitation.png' });
   await parent.getByTestId('invitation-code').fill(currentInvitation);
+  await parent.getByTestId('role-parent').click();
   await parent.getByTestId('submit-room').click();
   await expect(parent.getByTestId('connection-status')).toHaveAttribute('data-status', 'connected');
   await parent.getByTestId('invite-device').click();
@@ -417,6 +426,7 @@ test('first-run layout, keyboard dialog, invalid invite and denied microphone', 
   await expect(page.getByTestId('privacy-modal')).not.toBeVisible();
   await page.getByTestId('join-room').click();
   await page.getByTestId('invitation-code').fill('invalid');
+  await page.getByTestId('role-parent').click();
   await page.getByTestId('submit-room').click();
   await expect(page.getByTestId('form-error')).toBeVisible();
   await create(page, 'Baby', 'Permission test');
@@ -465,6 +475,7 @@ test('first-run layout, keyboard dialog, invalid invite and denied microphone', 
   await expect(page.getByTestId('invitation-code')).toHaveValue(invited.roomKey);
   await page.unroute('**/api/deactivate');
   await page.getByTestId('device-name').fill('Caregiver');
+  await page.getByTestId('role-parent').click();
   await page.getByTestId('submit-room').click();
   await expect(page.getByTestId('room-title')).toHaveAttribute(
     'data-room-name',

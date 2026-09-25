@@ -5,7 +5,10 @@ test('scan an invitation and release the camera; cancel and permission denial al
   page,
 }) => {
   const code = 'AbCdEf0123456789_abcdefgh';
-  const image = await QRCode.toDataURL(code, { width: 512, margin: 4 });
+  const image = await QRCode.toDataURL(`https://kueki.app/app/join#join=${code}`, {
+    width: 512,
+    margin: 4,
+  });
   await page.addInitScript(
     ({ image }) => {
       const state = window as unknown as {

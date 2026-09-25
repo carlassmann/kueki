@@ -1,23 +1,24 @@
 .connection-indicator {
-  display: flex;
-  align-items: center;
-  gap: var(--room-control-gap, 6px);
-  color: var(--muted);
-}
-
-/* The tooltip triggers are the hit areas, so they carry the shared square size
-   and center their glyph the same way the invite button does. */
-.connection-indicator > * {
+  min-width: var(--room-control-size, 44px);
+  height: var(--room-control-size, 44px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--room-control-size, 44px);
-  height: var(--room-control-size, 44px);
+  gap: 7px;
+  color: var(--muted);
+}
+
+/* With the wake lock held the indicator grows into a small pill, so the sun reads as part of
+   the same "this screen is on duty" signal rather than a separate control. */
+.connection-indicator:has(.wake-status) {
+  gap: 5px;
+  padding-inline: 6px;
 }
 
 .wake-status {
   display: inline-flex;
   align-items: center;
+  color: var(--mint);
 }
 
 /* The leave action needs the notice's full width, so the message keeps its own line. */

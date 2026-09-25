@@ -17,13 +17,13 @@ import {
   House,
   LinkSimple,
   Microphone,
+  Moon,
   MoonStars,
   Pause,
   Plus,
   PlusSquare,
   ShieldCheck,
   Sun,
-  SunDim,
   Translate,
   Waveform,
   WifiHigh,
@@ -62,7 +62,7 @@ export const AddToHomeIcon = PlusSquare;
 export const ShareIcon = Export;
 export const BrowserMenuIcon = DotsThreeOutlineVertical;
 export const BrightIcon = Sun;
-export const DimIcon = SunDim;
+export const NightIcon = Moon;
 export const SoundIcon = Waveform;
 export const ConnectionIcon = WifiHigh;
 export const LanguageIcon = Translate;

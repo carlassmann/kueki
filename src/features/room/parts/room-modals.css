@@ -4,9 +4,12 @@
   gap: 10px;
 }
 
-/* Resetting the invitation is a different intent from sharing it, so it stands apart. */
+/* Resetting the invitation is a different intent from sharing it, so it stands apart as a quiet
+   centred link rather than a third button of equal weight. */
 .reset-invitation {
-  margin-top: 18px;
+  display: flex;
+  margin: 14px auto 0;
+  font-size: var(--text-sm);
 }
 
 .setting-detail {
