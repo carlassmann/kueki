@@ -238,6 +238,16 @@ footer a {
   padding-right: 36px;
 }
 
+/* An action button sits at the right edge, where the close button floats, so the whole row
+   moves clear of the corner instead. */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true']:has(> [data-button]) {
+  padding-right: 52px;
+}
+
+[data-sonner-toaster] [data-sonner-toast]:has(> [data-button]) [data-title] {
+  padding-right: 0;
+}
+
 @media (max-width: 860px) {
   .app-shell {
     width: min(100% - 40px, 1180px);
