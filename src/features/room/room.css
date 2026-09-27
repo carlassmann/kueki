@@ -60,9 +60,8 @@
 
 @media (max-width: 860px) {
   .room-scroll {
-    margin-bottom: calc(90px + env(safe-area-inset-bottom));
-    padding-bottom: calc(16px + var(--bottom-overlay, 0px));
-    scroll-padding-bottom: 16px;
+    padding-bottom: calc(106px + env(safe-area-inset-bottom) + var(--bottom-overlay, 0px));
+    scroll-padding-bottom: calc(90px + env(safe-area-inset-bottom));
   }
 }
 
