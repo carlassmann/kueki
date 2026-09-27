@@ -127,7 +127,7 @@ test('invitation QR opens a compact join flow; activity clear is confirmed and f
       expect(
         await page.locator('.room-scroll').evaluate((scroll) => {
           const nav = document.querySelector('.room-navigation')!.getBoundingClientRect();
-          return scroll.getBoundingClientRect().bottom <= nav.top;
+          return scroll.getBoundingClientRect().bottom >= nav.bottom;
         }),
       ).toBe(true);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
